@@ -23,24 +23,24 @@ export default function HomePage() {
         {!isLoading && !isWalletConnected && (
           <div className="flex flex-col items-center gap-4">
             <SignInButton />
-            <p className="text-sm text-gray-500">Connect with Smart Wallet or existing wallet</p>
+            <p className="text-sm text-gray-600">Connect with Smart Wallet or existing wallet</p>
           </div>
         )}
 
         {/* Wallet connected but not signed in with SIWE */}
         {!isLoading && isWalletConnected && !isLoggedIn && (
           <div className="card max-w-md mx-auto p-6">
-            <p className="text-sm text-gray-500 mb-2">Wallet connected</p>
+            <p className="text-sm text-gray-600 mb-2">Wallet connected</p>
             <p className="font-mono text-sm text-gray-900 mb-4">{walletAddress}</p>
             <SignInButton />
-            <p className="text-xs text-gray-500 mt-2">Sign the message to complete authentication</p>
+            <p className="text-xs text-gray-600 mt-2">Sign the message to complete authentication</p>
           </div>
         )}
 
         {/* Fully authenticated */}
         {isLoggedIn && user && (
           <div className="card max-w-md mx-auto p-6">
-            <p className="text-sm text-gray-500 mb-2">Welcome back!</p>
+            <p className="text-sm text-gray-600 mb-2">Welcome back!</p>
             <p className="font-mono text-sm text-gray-900 mb-4">{user.address}</p>
             <div className="flex justify-center">
               <TokenBalance className="text-lg" />

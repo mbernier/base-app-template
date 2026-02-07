@@ -13,7 +13,7 @@ export function Footer({ className }: FooterProps) {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           {/* Copyright */}
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-600">
             {currentYear} {app.name}. All rights reserved.
           </p>
 
@@ -21,13 +21,13 @@ export function Footer({ className }: FooterProps) {
           <nav className="flex items-center gap-6" aria-label="Footer navigation">
             <Link
               href="/terms"
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              className="text-sm text-gray-600 hover:text-gray-700 transition-colors"
             >
               Terms of Service
             </Link>
             <Link
               href="/privacy"
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              className="text-sm text-gray-600 hover:text-gray-700 transition-colors"
             >
               Privacy Policy
             </Link>

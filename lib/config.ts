@@ -61,14 +61,18 @@ export function validateServerConfig(): void {
     return; // Skip validation on client
   }
 
-  if (!auth.sessionSecret || auth.sessionSecret === 'CHANGE_ME_GENERATE_A_REAL_SECRET_WITH_OPENSSL') {
-    if (app.isProduction) {
-      throw new Error('SESSION_SECRET must be set in production');
-    }
-    console.warn('[Config] Warning: SESSION_SECRET not properly set');
+  if (!auth.sessionSecret) {
+    throw new Error(
+      'SESSION_SECRET environment variable is required. Generate one with: openssl rand -base64 32'
+    );
   }
 
   if (!database.supabaseUrl || !database.supabaseAnonKey) {
     console.warn('[Config] Warning: Supabase configuration incomplete');
   }
+}
+
+// Run validation on server-side module load
+if (typeof window === 'undefined') {
+  validateServerConfig();
 }

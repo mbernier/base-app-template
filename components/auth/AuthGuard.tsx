@@ -45,7 +45,7 @@ export function AuthGuard({ children, fallback, redirectTo }: AuthGuardProps) {
             <p className="text-gray-600 mb-1">
               Wallet connected: <span className="font-mono text-sm">{walletAddress}</span>
             </p>
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-600 text-sm">
               Sign the message to verify ownership and access this page.
             </p>
           </div>

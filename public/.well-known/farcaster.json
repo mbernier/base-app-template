@@ -4,13 +4,24 @@
     "payload": "REPLACE_WITH_GENERATED_PAYLOAD",
     "signature": "REPLACE_WITH_GENERATED_SIGNATURE"
   },
-  "frame": {
+  "miniapp": {
     "version": "1",
     "name": "My Base App",
+    "homeUrl": "https://your-app.com",
     "iconUrl": "https://your-app.com/icon.png",
     "splashImageUrl": "https://your-app.com/splash.png",
     "splashBackgroundColor": "#1a1a3e",
-    "homeUrl": "https://your-app.com",
-    "webhookUrl": "https://your-app.com/api/webhook"
+    "webhookUrl": "https://your-app.com/api/webhook",
+    "subtitle": "A Base Mini App",
+    "description": "Built with OnchainKit, SIWE, and Supabase. Replace this with your app's description.",
+    "screenshotUrls": [],
+    "primaryCategory": "utility",
+    "tags": ["base", "onchain", "miniapp"],
+    "heroImageUrl": "https://your-app.com/hero.png",
+    "tagline": "Your tagline here",
+    "ogTitle": "My Base App",
+    "ogDescription": "A Base Mini App built with OnchainKit",
+    "ogImageUrl": "https://your-app.com/og.png",
+    "noindex": true
   }
 }

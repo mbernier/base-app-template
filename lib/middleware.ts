@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from './auth';
 import { rateLimit as rateLimitConfig } from './config';
 
-// Rate limiting (simple in-memory - use Redis for production)
+// Rate limiting (in-memory - for production with multiple instances, use Redis or similar)
+// NOTE: This map is per-process. In a multi-server deployment, requests can
+// exceed limits proportional to the number of instances. See docs for Redis setup.
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 export function rateLimit(

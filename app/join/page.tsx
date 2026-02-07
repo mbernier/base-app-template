@@ -37,7 +37,7 @@ export default function JoinPage() {
 
           <SignInButton className="w-full" onSuccess={() => router.push('/')} />
 
-          <div className="mt-6 text-sm text-gray-500">
+          <div className="mt-6 text-sm text-gray-600">
             <p>
               By signing in, you agree to our{' '}
               <a href="/terms" className="link">

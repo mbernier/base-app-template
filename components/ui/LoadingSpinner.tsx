@@ -47,7 +47,7 @@ export function PageLoading({ message = 'Loading...' }: PageLoadingProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
       <LoadingSpinner size="lg" />
-      <p className="text-gray-500 text-sm">{message}</p>
+      <p className="text-gray-600 text-sm">{message}</p>
     </div>
   );
 }

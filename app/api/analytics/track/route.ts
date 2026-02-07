@@ -1,8 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createUntypedServerClient } from '@/lib/db';
 import { requireRateLimit } from '@/lib/middleware';
 import { getSession } from '@/lib/auth';
-import type { TrackRequest, PageVisitData, AnalyticsEventData } from '@/types/api';
+
+// Zod schemas for input validation
+const pageVisitSchema = z.object({
+  type: z.literal('page_visit'),
+  data: z.object({
+    anonymousId: z.string().min(1).max(128),
+    sessionId: z.string().min(1).max(128),
+    path: z.string().min(1).max(2048),
+    referrer: z.string().max(2048).nullable().optional(),
+    queryParams: z.record(z.string().max(512)).nullable().optional(),
+    userAgent: z.string().max(512).nullable().optional(),
+    screenWidth: z.number().int().min(0).max(10000).nullable().optional(),
+    screenHeight: z.number().int().min(0).max(10000).nullable().optional(),
+  }),
+});
+
+const analyticsEventSchema = z.object({
+  type: z.literal('event'),
+  data: z.object({
+    anonymousId: z.string().min(1).max(128),
+    eventType: z.string().min(1).max(128),
+    properties: z.record(z.unknown()).nullable().optional(),
+  }),
+});
+
+const trackRequestSchema = z.discriminatedUnion('type', [
+  pageVisitSchema,
+  analyticsEventSchema,
+]);
 
 export async function POST(request: NextRequest) {
   // Rate limiting
@@ -10,13 +39,18 @@ export async function POST(request: NextRequest) {
   if (rateLimitResult) return rateLimitResult;
 
   try {
-    const body = (await request.json()) as TrackRequest;
-    const { type, data } = body;
+    const body = await request.json();
 
-    if (!type || !data) {
-      return NextResponse.json({ error: 'Type and data required' }, { status: 400 });
+    // Validate input with zod
+    const parsed = trackRequestSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request data', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
 
+    const { type, data } = parsed.data;
     const supabase = createUntypedServerClient();
 
     // Get current user if logged in
@@ -38,28 +72,27 @@ export async function POST(request: NextRequest) {
     }
 
     if (type === 'page_visit') {
-      const pageData = data as PageVisitData;
+      // Sanitize user agent (truncate to prevent storage abuse)
+      const sanitizedUserAgent = data.userAgent?.substring(0, 512) ?? null;
+
       await supabase.from('page_visits').insert({
-        anonymous_id: pageData.anonymousId,
+        anonymous_id: data.anonymousId,
         account_id: accountId,
-        path: pageData.path,
-        referrer: pageData.referrer ?? null,
-        query_params: pageData.queryParams ?? null,
-        user_agent: pageData.userAgent ?? null,
-        screen_width: pageData.screenWidth ?? null,
-        screen_height: pageData.screenHeight ?? null,
-        session_id: pageData.sessionId,
-      });
-    } else if (type === 'event') {
-      const eventData = data as AnalyticsEventData;
-      await supabase.from('analytics_events').insert({
-        event_type: eventData.eventType,
-        anonymous_id: eventData.anonymousId,
-        account_id: accountId,
-        properties: eventData.properties ?? null,
+        path: data.path,
+        referrer: data.referrer ?? null,
+        query_params: data.queryParams ?? null,
+        user_agent: sanitizedUserAgent,
+        screen_width: data.screenWidth ?? null,
+        screen_height: data.screenHeight ?? null,
+        session_id: data.sessionId,
       });
     } else {
-      return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
+      await supabase.from('analytics_events').insert({
+        event_type: data.eventType,
+        anonymous_id: data.anonymousId,
+        account_id: accountId,
+        properties: data.properties ?? null,
+      });
     }
 
     return NextResponse.json({ success: true });

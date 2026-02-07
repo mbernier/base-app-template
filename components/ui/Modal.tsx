@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, ReactNode } from 'react';
+import { useEffect, useRef, useCallback, useId, ReactNode } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -14,25 +14,49 @@ interface ModalProps {
 export function Modal({ isOpen, onClose, title, children, className }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<Element | null>(null);
+  const titleId = useId();
 
-  // Handle escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
+  // Focus trap: cycle focus within the modal (WCAG 2.1.2)
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
         onClose();
+        return;
       }
-    };
 
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
+      if (e.key !== 'Tab' || !modalRef.current) return;
 
-  // Trap focus and handle body scroll
+      const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      const firstEl = focusableElements[0];
+      const lastEl = focusableElements[focusableElements.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstEl) {
+          e.preventDefault();
+          lastEl?.focus();
+        }
+      } else {
+        if (document.activeElement === lastEl) {
+          e.preventDefault();
+          firstEl?.focus();
+        }
+      }
+    },
+    [isOpen, onClose]
+  );
+
+  // Handle focus management and body scroll
   useEffect(() => {
     if (isOpen) {
       previousActiveElement.current = document.activeElement;
       document.body.style.overflow = 'hidden';
-      modalRef.current?.focus();
+      document.addEventListener('keydown', handleKeyDown);
+      // Focus the modal after a brief delay to ensure it's rendered
+      requestAnimationFrame(() => {
+        modalRef.current?.focus();
+      });
     } else {
       document.body.style.overflow = '';
       if (previousActiveElement.current instanceof HTMLElement) {
@@ -42,8 +66,9 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
 
     return () => {
       document.body.style.overflow = '';
+      document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, handleKeyDown]);
 
   if (!isOpen) return null;
 
@@ -52,7 +77,7 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
-      aria-labelledby={title ? 'modal-title' : undefined}
+      aria-labelledby={title ? titleId : undefined}
     >
       {/* Backdrop */}
       <div
@@ -65,12 +90,12 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
       <div
         ref={modalRef}
         tabIndex={-1}
-        className={`relative bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto ${className || ''}`}
+        className={`relative bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto outline-none ${className || ''}`}
       >
         {/* Header */}
         {title && (
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <h2 id="modal-title" className="text-lg font-semibold text-gray-900">
+            <h2 id={titleId} className="text-lg font-semibold text-gray-900">
               {title}
             </h2>
             <button

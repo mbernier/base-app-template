@@ -63,9 +63,7 @@ export function AppProviders({ children }: AppProvidersProps) {
           }}
         >
           <AuthProvider>
-            <AnalyticsProvider>
-              {mounted ? children : null}
-            </AnalyticsProvider>
+            <AnalyticsProvider>{mounted ? children : null}</AnalyticsProvider>
           </AuthProvider>
         </OnchainKitProvider>
       </QueryClientProvider>

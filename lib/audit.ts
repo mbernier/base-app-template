@@ -24,8 +24,13 @@ export async function logApiRequest(params: AuditLogParams): Promise<void> {
     const realIp = headersList.get('x-real-ip');
     const ip = forwardedFor?.split(',')[0] || realIp || 'unknown';
 
-    // Hash IP for privacy
-    const ipHash = crypto.createHash('sha256').update(ip).digest('hex').substring(0, 64);
+    // Hash IP for privacy with a salt for stronger anonymization
+    const salt = process.env.IP_HASH_SALT || 'base-app-default-salt';
+    const ipHash = crypto
+      .createHash('sha256')
+      .update(`${salt}:${ip}`)
+      .digest('hex')
+      .substring(0, 64);
 
     const supabase = createUntypedServerClient();
 

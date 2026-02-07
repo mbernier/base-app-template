@@ -20,9 +20,13 @@ export function TokenBalance({ className, showSymbol = true }: TokenBalanceProps
   }
 
   return (
-    <div className={`flex items-center text-sm font-medium text-gray-700 ${className || ''}`}>
+    <div
+      className={`flex items-center text-sm font-medium text-gray-700 ${className || ''}`}
+      aria-live="polite"
+      aria-label={`Token balance: ${balanceFormatted} ${showSymbol ? symbol : ''}`}
+    >
       <span>{balanceFormatted}</span>
-      {showSymbol && <span className="ml-1 text-gray-500">{symbol}</span>}
+      {showSymbol && <span className="ml-1 text-gray-600">{symbol}</span>}
     </div>
   );
 }

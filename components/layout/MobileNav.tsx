@@ -42,13 +42,20 @@ export function MobileNav({ className }: MobileNavProps) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center w-16 h-full transition-colors ${
-                isActive ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
+              className={`relative flex flex-col items-center justify-center w-16 h-full transition-colors ${
+                isActive ? 'text-blue-600' : 'text-gray-600 hover:text-gray-700'
               }`}
               aria-current={isActive ? 'page' : undefined}
             >
+              {/* Active indicator bar */}
+              {isActive && (
+                <span
+                  className="absolute top-0 left-2 right-2 h-0.5 bg-blue-600 rounded-full"
+                  aria-hidden="true"
+                />
+              )}
               <Icon className="w-6 h-6" aria-hidden="true" />
-              <span className="text-xs mt-1">{item.label}</span>
+              <span className="text-xs mt-1 font-medium">{item.label}</span>
             </Link>
           );
         })}

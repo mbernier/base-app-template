@@ -13,9 +13,20 @@ export interface SessionData {
   tosAcceptedAt?: string;
 }
 
+// Validate session secret at module load time - hard fail if missing
+function getSessionPassword(): string {
+  const secret = auth.sessionSecret;
+  if (!secret) {
+    throw new Error(
+      'SESSION_SECRET environment variable is required. Generate one with: openssl rand -base64 32'
+    );
+  }
+  return secret;
+}
+
 // Session options
 const sessionOptions = {
-  password: auth.sessionSecret || 'fallback-dev-secret-do-not-use-in-production',
+  password: getSessionPassword(),
   cookieName: 'base_app_session',
   cookieOptions: {
     secure: app.isProduction,
@@ -45,13 +56,30 @@ export function generateSiweMessage(address: string, chainId: number, nonce: str
   });
 }
 
-// Verify SIWE signature
+// Verify SIWE signature with nonce, domain, and URI validation
 export async function verifySiweSignature(
   message: string,
-  signature: string
+  signature: string,
+  expectedNonce: string
 ): Promise<{ success: boolean; address?: string; chainId?: number; error?: string }> {
   try {
     const siweMessage = new SiweMessage(message);
+
+    // Validate nonce matches session nonce
+    if (siweMessage.nonce !== expectedNonce) {
+      return { success: false, error: 'Nonce mismatch' };
+    }
+
+    // Validate domain matches expected SIWE domain
+    if (siweMessage.domain !== auth.siweDomain) {
+      return { success: false, error: 'Domain mismatch' };
+    }
+
+    // Validate URI matches expected app URL
+    if (siweMessage.uri !== app.url) {
+      return { success: false, error: 'URI mismatch' };
+    }
+
     const result = await siweMessage.verify({ signature });
 
     if (result.success) {
