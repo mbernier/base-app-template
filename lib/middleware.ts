@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from './auth';
 import { rateLimit as rateLimitConfig } from './config';
+import { isAdmin as checkIsAdmin } from './admin';
 
 // Rate limiting (in-memory - for production with multiple instances, use Redis or similar)
 // NOTE: This map is per-process. In a multi-server deployment, requests can
@@ -52,19 +53,40 @@ export function requireRateLimit(request: NextRequest): NextResponse | null {
   return null; // Continue
 }
 
+// Admin middleware
+export async function requireAdmin(_request: NextRequest): Promise<NextResponse | null> {
+  const session = await getSession();
+
+  if (!session.isLoggedIn || !session.address) {
+    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+  }
+
+  const admin = await checkIsAdmin(session.address);
+  if (!admin) {
+    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  }
+
+  return null; // Continue
+}
+
 // Combine middleware
 export async function apiMiddleware(
   request: NextRequest,
-  options: { requireAuth?: boolean; rateLimit?: boolean } = {}
+  options: { requireAuth?: boolean; requireAdmin?: boolean; rateLimit?: boolean } = {}
 ): Promise<NextResponse | null> {
   if (options.rateLimit !== false) {
     const rateLimitResult = requireRateLimit(request);
     if (rateLimitResult) return rateLimitResult;
   }
 
-  if (options.requireAuth) {
+  if (options.requireAuth || options.requireAdmin) {
     const authResult = await requireAuth(request);
     if (authResult) return authResult;
+  }
+
+  if (options.requireAdmin) {
+    const adminResult = await requireAdmin(request);
+    if (adminResult) return adminResult;
   }
 
   return null; // Continue

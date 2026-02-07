@@ -110,6 +110,173 @@ export interface Database {
           created_at?: string;
         };
       };
+      app_settings: {
+        Row: {
+          id: string;
+          key: string;
+          value: unknown;
+          description: string | null;
+          updated_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          key: string;
+          value: unknown;
+          description?: string | null;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          key?: string;
+          value?: unknown;
+          description?: string | null;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      nft_collections: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          provider: string;
+          contract_address: string | null;
+          chain_id: number;
+          token_standard: string | null;
+          is_active: boolean;
+          provider_config: Record<string, unknown>;
+          image_url: string | null;
+          external_url: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          provider: string;
+          contract_address?: string | null;
+          chain_id?: number;
+          token_standard?: string | null;
+          is_active?: boolean;
+          provider_config?: Record<string, unknown>;
+          image_url?: string | null;
+          external_url?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          provider?: string;
+          contract_address?: string | null;
+          chain_id?: number;
+          token_standard?: string | null;
+          is_active?: boolean;
+          provider_config?: Record<string, unknown>;
+          image_url?: string | null;
+          external_url?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      nft_tokens: {
+        Row: {
+          id: string;
+          collection_id: string;
+          token_id: string | null;
+          name: string | null;
+          description: string | null;
+          image_url: string | null;
+          metadata_uri: string | null;
+          metadata: Record<string, unknown> | null;
+          max_supply: number | null;
+          total_minted: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          collection_id: string;
+          token_id?: string | null;
+          name?: string | null;
+          description?: string | null;
+          image_url?: string | null;
+          metadata_uri?: string | null;
+          metadata?: Record<string, unknown> | null;
+          max_supply?: number | null;
+          total_minted?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          collection_id?: string;
+          token_id?: string | null;
+          name?: string | null;
+          description?: string | null;
+          image_url?: string | null;
+          metadata_uri?: string | null;
+          metadata?: Record<string, unknown> | null;
+          max_supply?: number | null;
+          total_minted?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      nft_mints: {
+        Row: {
+          id: string;
+          collection_id: string;
+          token_id: string | null;
+          account_id: string | null;
+          minter_address: string;
+          quantity: number;
+          tx_hash: string | null;
+          provider: string;
+          provider_metadata: Record<string, unknown> | null;
+          status: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          collection_id: string;
+          token_id?: string | null;
+          account_id?: string | null;
+          minter_address: string;
+          quantity?: number;
+          tx_hash?: string | null;
+          provider: string;
+          provider_metadata?: Record<string, unknown> | null;
+          status?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          collection_id?: string;
+          token_id?: string | null;
+          account_id?: string | null;
+          minter_address?: string;
+          quantity?: number;
+          tx_hash?: string | null;
+          provider?: string;
+          provider_metadata?: Record<string, unknown> | null;
+          status?: string;
+          created_at?: string;
+        };
+      };
     };
   };
 }

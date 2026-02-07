@@ -21,6 +21,8 @@
     "@farcaster/miniapp-sdk": "^0.2.3",
     "@supabase/supabase-js": "^2.39.0",
     "@tanstack/react-query": "^5.90.20",
+    "@zoralabs/coins-sdk": "^0.4.3",
+    "@zoralabs/protocol-sdk": "^0.13.18",
     "clsx": "^2.1.1",
     "ethers": "^6.16.0",
     "iron-session": "^8.0.0",

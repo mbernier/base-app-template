@@ -49,6 +49,19 @@ export const auth = {
   siweStatement: process.env.SIWE_STATEMENT || 'Sign in to this app',
 };
 
+// NFT configuration
+export const nft = {
+  defaultProvider: process.env.NEXT_PUBLIC_DEFAULT_NFT_PROVIDER || 'onchainkit',
+  zoraCreateReferral: process.env.ZORA_CREATE_REFERRAL_ADDRESS as `0x${string}` | undefined,
+  zoraMintReferral: process.env.ZORA_MINT_REFERRAL_ADDRESS as `0x${string}` | undefined,
+  zoraPlatformReferrer: process.env.ZORA_PLATFORM_REFERRER_ADDRESS as `0x${string}` | undefined,
+};
+
+// Admin configuration
+export const admin = {
+  initialSuperAdminAddress: process.env.INITIAL_SUPER_ADMIN_ADDRESS as string | undefined,
+};
+
 // Rate limiting configuration
 export const rateLimit = {
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'),
