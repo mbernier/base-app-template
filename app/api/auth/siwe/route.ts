@@ -6,6 +6,7 @@ import {
   generateNonce,
 } from '@/lib/auth';
 import { upsertUser } from '@/lib/db';
+import { initializeSuperAdmin } from '@/lib/admin';
 import { logApiRequest, getAccountIdByAddress } from '@/lib/audit';
 
 // GET - Generate SIWE message
@@ -86,6 +87,9 @@ export async function POST(request: NextRequest) {
       address: result.address!,
       chainId: result.chainId!,
     });
+
+    // Initialize super admin if this is the configured address
+    await initializeSuperAdmin(result.address!);
 
     // Create session
     const session = await getSession();
