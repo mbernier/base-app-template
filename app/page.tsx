@@ -1,13 +1,16 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
+import { useFarcasterContext } from '@/hooks/useFarcaster';
 import { SignInButton } from '@/components/auth/SignInButton';
 import { TokenBalance } from '@/components/wallet/TokenBalance';
 import { RiskDisclaimer } from '@/components/legal/RiskDisclaimer';
 import { app } from '@/lib/config';
 
 export default function HomePage() {
-  const { isLoggedIn, isWalletConnected, walletAddress, user, isLoading } = useAuth();
+  const { isLoggedIn, isWalletConnected, walletAddress, user, isLoading, isFarcasterAuth } =
+    useAuth();
+  const { isMiniApp } = useFarcasterContext();
 
   return (
     <div className="container-page">
@@ -15,20 +18,26 @@ export default function HomePage() {
       <section className="text-center py-12 md:py-20">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">{app.name}</h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
-          Welcome to your Base Mini App. Connect your wallet to get started with the decentralized
-          experience.
+          {isMiniApp
+            ? `Welcome to ${app.name}. Your wallet is connected automatically.`
+            : 'Welcome to your Base Mini App. Connect your wallet to get started with the decentralized experience.'}
         </p>
 
-        {/* Not connected at all */}
-        {!isLoading && !isWalletConnected && (
+        {/* Loading state in mini-app (auto-connecting) */}
+        {isMiniApp && isLoading && (
+          <p className="text-sm text-gray-500">Connecting...</p>
+        )}
+
+        {/* Not connected at all — only shown in standalone mode */}
+        {!isLoading && !isWalletConnected && !isMiniApp && (
           <div className="flex flex-col items-center gap-4">
             <SignInButton />
             <p className="text-sm text-gray-500">Connect with Smart Wallet or existing wallet</p>
           </div>
         )}
 
-        {/* Wallet connected but not signed in with SIWE */}
-        {!isLoading && isWalletConnected && !isLoggedIn && (
+        {/* Wallet connected but not signed in with SIWE — only shown in standalone mode */}
+        {!isLoading && isWalletConnected && !isLoggedIn && !isMiniApp && (
           <div className="card max-w-md mx-auto p-6">
             <p className="text-sm text-gray-500 mb-2">Wallet connected</p>
             <p className="font-mono text-sm text-gray-900 mb-4">{walletAddress}</p>
@@ -40,7 +49,11 @@ export default function HomePage() {
         {/* Fully authenticated */}
         {isLoggedIn && user && (
           <div className="card max-w-md mx-auto p-6">
-            <p className="text-sm text-gray-500 mb-2">Welcome back!</p>
+            <p className="text-sm text-gray-500 mb-2">
+              {isFarcasterAuth && user.farcasterUsername
+                ? `Welcome, @${user.farcasterUsername}!`
+                : 'Welcome back!'}
+            </p>
             <p className="font-mono text-sm text-gray-900 mb-4">{user.address}</p>
             <div className="flex justify-center">
               <TokenBalance className="text-lg" />

@@ -47,6 +47,9 @@ next-env.d.ts
 supabase/.branches
 supabase/.temp
 
+# Generated CSS (copied from node_modules via postinstall)
+public/onchainkit.css
+
 # Port configuration
 .ports.json
 AGENTINFO.md

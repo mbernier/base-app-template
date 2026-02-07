@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getUserByAddress } from '@/lib/db';
-import { logApiRequest, getAccountIdByAddress } from '@/lib/audit';
+import { logApiRequest } from '@/lib/audit';
 
 export async function GET() {
   const startTime = Date.now();
@@ -50,6 +50,8 @@ export async function GET() {
       address: session.address,
       chainId: session.chainId,
       tosAcceptedVersion: session.tosAcceptedVersion,
+      fid: session.fid,
+      authMethod: session.authMethod,
       user,
     });
   } catch (error) {

@@ -11,6 +11,8 @@ export interface SessionData {
   nonce?: string;
   tosAcceptedVersion?: string;
   tosAcceptedAt?: string;
+  fid?: number;
+  authMethod?: 'wallet' | 'farcaster';
 }
 
 // Session options

@@ -277,6 +277,53 @@ export interface Database {
           created_at?: string;
         };
       };
+      farcaster_users: {
+        Row: {
+          id: string;
+          account_id: string;
+          fid: number;
+          username: string | null;
+          display_name: string | null;
+          pfp_url: string | null;
+          notification_url: string | null;
+          notification_token: string | null;
+          notifications_enabled: boolean;
+          added_at: string | null;
+          removed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          account_id: string;
+          fid: number;
+          username?: string | null;
+          display_name?: string | null;
+          pfp_url?: string | null;
+          notification_url?: string | null;
+          notification_token?: string | null;
+          notifications_enabled?: boolean;
+          added_at?: string | null;
+          removed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          account_id?: string;
+          fid?: number;
+          username?: string | null;
+          display_name?: string | null;
+          pfp_url?: string | null;
+          notification_url?: string | null;
+          notification_token?: string | null;
+          notifications_enabled?: boolean;
+          added_at?: string | null;
+          removed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
   };
 }

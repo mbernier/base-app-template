@@ -1,12 +1,15 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode, useCallback } from 'react';
 import { useAccount, useSignMessage, useDisconnect } from 'wagmi';
+import { useFarcasterContext } from '@/hooks/useFarcaster';
 import type { AuthState, UserInfo } from '@/types/auth';
 
 interface AuthContextType extends AuthState {
   isWalletConnected: boolean;
   walletAddress: `0x${string}` | undefined;
+  isFarcasterAuth: boolean;
+  fid?: number;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
@@ -18,6 +21,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { address, isConnected, chainId } = useAccount();
   const { signMessageAsync } = useSignMessage();
   const { disconnect } = useDisconnect();
+  const { isMiniApp, context } = useFarcasterContext();
+  const farcasterAuthAttempted = useRef(false);
 
   const [authState, setAuthState] = useState<AuthState>({
     isLoggedIn: false,
@@ -51,6 +56,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut();
     }
   }, [isConnected, authState.isLoggedIn]);
+
+  // Farcaster auto-auth: when inside a mini-app with wallet connected
+  useEffect(() => {
+    if (
+      !isMiniApp ||
+      !context ||
+      !isConnected ||
+      !address ||
+      authState.isLoggedIn ||
+      authState.isLoading ||
+      farcasterAuthAttempted.current
+    ) {
+      return;
+    }
+
+    farcasterAuthAttempted.current = true;
+    const user = context.user;
+
+    (async () => {
+      try {
+        setAuthState((prev) => ({ ...prev, isLoading: true }));
+
+        const res = await fetch('/api/auth/farcaster', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fid: user.fid,
+            address,
+            username: user.username,
+            displayName: user.displayName,
+            pfpUrl: user.pfpUrl,
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error('Farcaster auth failed');
+        }
+
+        const data = (await res.json()) as { user: UserInfo };
+
+        setAuthState({
+          isLoggedIn: true,
+          isLoading: false,
+          address,
+          user: data.user,
+        });
+      } catch (error) {
+        console.error('Farcaster auto-auth failed:', error);
+        farcasterAuthAttempted.current = false;
+        setAuthState({ isLoggedIn: false, isLoading: false });
+      }
+    })();
+  }, [isMiniApp, context, isConnected, address, authState.isLoggedIn, authState.isLoading]);
 
   const signIn = async () => {
     if (!address || !chainId) {
@@ -107,6 +165,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...authState,
         isWalletConnected: isConnected,
         walletAddress: address,
+        isFarcasterAuth: isMiniApp && authState.isLoggedIn,
+        fid: context?.user.fid,
         signIn,
         signOut,
         refreshSession,

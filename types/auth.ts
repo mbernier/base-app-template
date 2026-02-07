@@ -5,6 +5,8 @@ export interface SessionData {
   nonce?: string;
   tosAcceptedVersion?: string;
   tosAcceptedAt?: string;
+  fid?: number;
+  authMethod?: 'wallet' | 'farcaster';
 }
 
 export interface AuthState {
@@ -19,6 +21,8 @@ export interface UserInfo {
   username?: string;
   avatarUrl?: string;
   createdAt: string;
+  fid?: number;
+  farcasterUsername?: string;
 }
 
 export interface SiweMessageResponse {

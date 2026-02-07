@@ -6,6 +6,7 @@ import { WagmiProvider, createConfig, http } from 'wagmi';
 import { base, baseSepolia } from 'wagmi/chains';
 import { OnchainKitProvider } from '@coinbase/onchainkit';
 import { AuthProvider } from '@/hooks/useAuth';
+import { FarcasterProvider } from '@/hooks/useFarcaster';
 import { AnalyticsProvider } from '@/hooks/useAnalytics';
 import { blockchain, onchainKit, app } from '@/lib/config';
 
@@ -61,12 +62,15 @@ export function AppProviders({ children }: AppProvidersProps) {
               privacyUrl: '/privacy',
             },
           }}
+          miniKit={{ enabled: true }}
         >
-          <AuthProvider>
-            <AnalyticsProvider>
-              {mounted ? children : null}
-            </AnalyticsProvider>
-          </AuthProvider>
+          <FarcasterProvider>
+            <AuthProvider>
+              <AnalyticsProvider>
+                {mounted ? children : null}
+              </AnalyticsProvider>
+            </AuthProvider>
+          </FarcasterProvider>
         </OnchainKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

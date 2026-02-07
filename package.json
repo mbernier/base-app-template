@@ -10,10 +10,12 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "postinstall": "cp node_modules/@coinbase/onchainkit/dist/assets/style.css public/onchainkit.css 2>/dev/null || true"
   },
   "dependencies": {
-    "@coinbase/onchainkit": "^0.36.6",
+    "@coinbase/onchainkit": "^1.1.2",
+    "@farcaster/miniapp-sdk": "^0.2.3",
     "@supabase/supabase-js": "^2.39.0",
     "@tanstack/react-query": "^5.17.0",
     "@zoralabs/coins-sdk": "^0.4.3",

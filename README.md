@@ -5,7 +5,9 @@ A production-ready template for building Base Mini Apps with OnchainKit, SIWE au
 ## Features
 
 - **OnchainKit Integration** - Coinbase's official toolkit for building onchain apps
+- **Farcaster Mini-App Support** - Dual-mode: standalone web + embedded Farcaster/Base mini-app
 - **SIWE Authentication** - Sign-In With Ethereum for secure wallet-based auth
+- **Farcaster Auto-Auth** - Automatic authentication when running inside a Farcaster client
 - **Smart Wallet Support** - Gasless transactions with Coinbase Smart Wallet
 - **Token Utilities** - ERC-20 token balance and transfer helpers
 - **Supabase Database** - PostgreSQL with Row Level Security
@@ -47,6 +49,16 @@ Open [http://localhost:3100](http://localhost:3100) in your browser.
 | `NEXT_PUBLIC_SUPABASE_URL` | No | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | No | Supabase anonymous key |
 | `SUPABASE_SERVICE_ROLE_KEY` | No | Supabase service role key |
+| `NEXT_PUBLIC_FARCASTER_ENABLED` | No | Enable Farcaster mini-app mode (`true`/`false`) |
+| `FARCASTER_ACCOUNT_HEADER` | No | Account association header (for manifest) |
+| `FARCASTER_ACCOUNT_PAYLOAD` | No | Account association payload (for manifest) |
+| `FARCASTER_ACCOUNT_SIGNATURE` | No | Account association signature (for manifest) |
+| `NEXT_PUBLIC_FARCASTER_ICON_URL` | No | Mini-app icon URL |
+| `NEXT_PUBLIC_FARCASTER_IMAGE_URL` | No | Mini-app image URL |
+| `NEXT_PUBLIC_FARCASTER_SPLASH_IMAGE_URL` | No | Splash screen image URL |
+| `NEXT_PUBLIC_FARCASTER_SPLASH_BG_COLOR` | No | Splash screen background color |
+| `NEXT_PUBLIC_FARCASTER_BUTTON_TITLE` | No | Launch button title |
+| `NEXT_PUBLIC_FARCASTER_WEBHOOK_URL` | No | Webhook URL for lifecycle events |
 
 ## Project Structure
 
@@ -54,25 +66,27 @@ Open [http://localhost:3100](http://localhost:3100) in your browser.
 base-app-template/
 ├── app/                    # Next.js App Router
 │   ├── api/               # API routes
-│   │   ├── auth/          # SIWE authentication
+│   │   ├── auth/          # SIWE + Farcaster authentication
+│   │   ├── farcaster/     # Farcaster webhook endpoint
 │   │   ├── user/          # User management
 │   │   └── analytics/     # Analytics tracking
+│   ├── .well-known/       # Dynamic Farcaster manifest
 │   ├── layout.tsx         # Root layout
-│   ├── page.tsx           # Home page
+│   ├── page.tsx           # Home page (dual-mode)
 │   ├── join/              # Sign-in page
 │   ├── profile/           # User profile
 │   ├── terms/             # Terms of Service
 │   └── privacy/           # Privacy Policy
 ├── components/
 │   ├── providers/         # React context providers
-│   ├── layout/            # Header, Footer, Navigation
+│   ├── layout/            # AppShell, Header, Footer, Navigation
 │   ├── auth/              # Authentication components
 │   ├── wallet/            # Wallet/transaction components
 │   ├── ui/                # Reusable UI components
 │   └── legal/             # ToS, disclaimers
-├── hooks/                 # Custom React hooks
-├── lib/                   # Utility functions
-├── types/                 # TypeScript definitions
+├── hooks/                 # Custom React hooks (useAuth, useFarcaster)
+├── lib/                   # Utility functions + Farcaster DB/notifications
+├── types/                 # TypeScript definitions (auth, farcaster)
 ├── supabase/              # Database migrations
 └── public/                # Static assets
 ```
@@ -146,12 +160,49 @@ npm start
 
 ## Farcaster Mini App
 
-To use as a Farcaster Mini App:
+This template includes built-in support for running as a Farcaster Mini App via OnchainKit MiniKit. When running inside a Farcaster client (Warpcast) or Coinbase Wallet, it automatically:
 
-1. Generate account association signature
-2. Update `public/.well-known/farcaster.json`
-3. Deploy to production
-4. Submit to Farcaster
+- Hides the app chrome (header, footer, navigation) since the host provides its own
+- Auto-authenticates using the Farcaster user context (no wallet signature needed)
+- Applies safe area insets from the host client
+- Signals readiness to dismiss the splash screen
+
+### Setup
+
+1. Set `NEXT_PUBLIC_FARCASTER_ENABLED=true` in `.env.local`
+2. Generate an account association signature using [Farcaster tools](https://miniapps.farcaster.xyz)
+3. Set the `FARCASTER_ACCOUNT_HEADER`, `FARCASTER_ACCOUNT_PAYLOAD`, and `FARCASTER_ACCOUNT_SIGNATURE` env vars
+4. Set image URLs for `NEXT_PUBLIC_FARCASTER_ICON_URL`, `NEXT_PUBLIC_FARCASTER_IMAGE_URL`, and `NEXT_PUBLIC_FARCASTER_SPLASH_IMAGE_URL`
+5. Deploy to production — the manifest is served dynamically at `/.well-known/farcaster.json`
+6. Submit your app URL to Farcaster
+
+### Webhook
+
+Set `NEXT_PUBLIC_FARCASTER_WEBHOOK_URL` to your production webhook URL. The `/api/farcaster/webhook` endpoint handles lifecycle events (`miniapp_added`, `miniapp_removed`, `notifications_enabled`, `notifications_disabled`).
+
+### Notifications
+
+Use the utilities in `lib/farcaster-notifications.ts` to send push notifications:
+
+```typescript
+import { sendNotification, broadcastNotification } from '@/lib/farcaster-notifications';
+
+// Send to a single user by FID
+await sendNotification(12345, {
+  notificationId: 'unique-id',
+  title: 'Hello!',
+  body: 'You have a new message',
+  targetUrl: 'https://yourapp.com/messages',
+});
+
+// Broadcast to all opted-in users
+await broadcastNotification({
+  notificationId: 'broadcast-id',
+  title: 'New feature!',
+  body: 'Check out our latest update',
+  targetUrl: 'https://yourapp.com/new',
+});
+```
 
 ## License
 
