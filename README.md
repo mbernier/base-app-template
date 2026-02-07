@@ -1,162 +1,105 @@
 # Base App Template
 
-A production-ready template for building Base Mini Apps with OnchainKit, SIWE authentication, and Supabase.
+A production-ready Next.js 14 template for building Base Mini Apps with wallet authentication, an NFT abstraction layer, and a full admin system.
 
-## Features
+Built and maintained by [Bernier LLC](https://mbernier.com).
 
-- **OnchainKit Integration** - Coinbase's official toolkit for building onchain apps
-- **Farcaster Mini-App Support** - Dual-mode: standalone web + embedded Farcaster/Base mini-app
-- **SIWE Authentication** - Sign-In With Ethereum for secure wallet-based auth
+## Overview
+
+Base App Template provides everything you need to build onchain applications on [Base](https://base.org). Instead of wiring up wallet connections, authentication, database schemas, and NFT integrations from scratch, fork this template and start building your app's unique features immediately.
+
+### What's included
+
+- **Wallet Authentication** - SIWE (Sign-In With Ethereum) with iron-session, OnchainKit wallet integration, and Smart Wallet support for gasless transactions
+- **Farcaster Mini-App Support** - Dual-mode: standalone web + embedded Farcaster/Base mini-app via OnchainKit MiniKit
 - **Farcaster Auto-Auth** - Automatic authentication when running inside a Farcaster client
-- **Smart Wallet Support** - Gasless transactions with Coinbase Smart Wallet
-- **Token Utilities** - ERC-20 token balance and transfer helpers
-- **Supabase Database** - PostgreSQL with Row Level Security
-- **Cookie-Free Analytics** - Privacy-respecting usage tracking
-- **Mobile-First UI** - Responsive layout with bottom navigation
-- **WCAG 2.1 AA** - Accessible components with proper ARIA labels
-- **TypeScript** - Full type safety throughout
+- **NFT Abstraction Layer** - Strategy-pattern provider system supporting OnchainKit, Zora Protocol SDK, and Zora Coins SDK behind a single unified API
+- **Admin System** - Role-based access control (user/admin/superadmin) with a dashboard for managing collections, viewing mint analytics, and configuring settings
+- **Database** - Supabase PostgreSQL with Row Level Security, migrations, and typed client utilities
+- **UI Kit** - Accessible component library (WCAG 2.1 AA) with 44px touch targets, built on Tailwind CSS
+- **ERC-20 Utilities** - Token balance display, transfer, and approval helpers
 
 ## Quick Start
 
 ```bash
-# Install dependencies
+# 1. Use this template on GitHub, then clone your new repo
+git clone git@github.com:<your-org>/<your-app>.git
+cd <your-app>
+
+# 2. Install dependencies
 npm install
 
-# Copy environment file
+# 3. Set up environment
 cp .env.example .env.local
+# Edit .env.local with your values (see docs/configuration.md)
 
-# Edit .env.local:
-# - SESSION_SECRET (generate with: openssl rand -base64 32)
-# - Optional: NEXT_PUBLIC_CDP_API_KEY for gasless transactions
-
-# Start Supabase (optional, for database features)
+# 4. Start local database
 npx supabase start
+npx supabase db push
 
-# Start development server
+# 5. Start dev server
 npm run dev
 ```
 
 Open [http://localhost:3100](http://localhost:3100) in your browser.
 
-## Environment Variables
+For detailed setup instructions, see [Getting Started](docs/getting-started.md).
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `SESSION_SECRET` | Yes | Secret for session encryption (32+ chars) |
-| `NEXT_PUBLIC_CHAIN_ID` | No | 84532 (Base Sepolia) or 8453 (Base Mainnet) |
-| `NEXT_PUBLIC_TOKEN_ADDRESS` | No | Your ERC-20 token contract address |
-| `NEXT_PUBLIC_CDP_API_KEY` | No | For gasless transactions only |
-| `NEXT_PUBLIC_SUPABASE_URL` | No | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | No | Supabase anonymous key |
-| `SUPABASE_SERVICE_ROLE_KEY` | No | Supabase service role key |
-| `NEXT_PUBLIC_FARCASTER_ENABLED` | No | Enable Farcaster mini-app mode (`true`/`false`) |
-| `FARCASTER_ACCOUNT_HEADER` | No | Account association header (for manifest) |
-| `FARCASTER_ACCOUNT_PAYLOAD` | No | Account association payload (for manifest) |
-| `FARCASTER_ACCOUNT_SIGNATURE` | No | Account association signature (for manifest) |
-| `NEXT_PUBLIC_FARCASTER_ICON_URL` | No | Mini-app icon URL |
-| `NEXT_PUBLIC_FARCASTER_IMAGE_URL` | No | Mini-app image URL |
-| `NEXT_PUBLIC_FARCASTER_SPLASH_IMAGE_URL` | No | Splash screen image URL |
-| `NEXT_PUBLIC_FARCASTER_SPLASH_BG_COLOR` | No | Splash screen background color |
-| `NEXT_PUBLIC_FARCASTER_BUTTON_TITLE` | No | Launch button title |
-| `NEXT_PUBLIC_FARCASTER_WEBHOOK_URL` | No | Webhook URL for lifecycle events |
+## Documentation
 
-## Project Structure
+| Guide | Description |
+|-------|-------------|
+| [Getting Started](docs/getting-started.md) | Installation, environment setup, first run |
+| [Architecture](docs/architecture.md) | System design, request flow, directory structure |
+| [Authentication](docs/authentication.md) | SIWE flow, sessions, auth guards, protected routes |
+| [NFT Abstraction](docs/nft-abstraction.md) | Provider system, mint flow, adding new providers |
+| [Admin System](docs/admin-system.md) | Roles, dashboard, collection management, settings |
+| [API Reference](docs/api-reference.md) | Every endpoint with request/response examples |
+| [UI Kit](docs/ui-kit.md) | Component catalog, props, accessibility, design system |
+| [Database](docs/database.md) | Schema, migrations, RLS, query patterns |
+| [Configuration](docs/configuration.md) | All environment variables and config options |
+| [Testing](docs/testing.md) | Testing philosophy, patterns, running tests |
 
-```
-base-app-template/
-├── app/                    # Next.js App Router
-│   ├── api/               # API routes
-│   │   ├── auth/          # SIWE + Farcaster authentication
-│   │   ├── farcaster/     # Farcaster webhook endpoint
-│   │   ├── user/          # User management
-│   │   └── analytics/     # Analytics tracking
-│   ├── .well-known/       # Dynamic Farcaster manifest
-│   ├── layout.tsx         # Root layout
-│   ├── page.tsx           # Home page (dual-mode)
-│   ├── join/              # Sign-in page
-│   ├── profile/           # User profile
-│   ├── terms/             # Terms of Service
-│   └── privacy/           # Privacy Policy
-├── components/
-│   ├── providers/         # React context providers
-│   ├── layout/            # AppShell, Header, Footer, Navigation
-│   ├── auth/              # Authentication components
-│   ├── wallet/            # Wallet/transaction components
-│   ├── ui/                # Reusable UI components
-│   └── legal/             # ToS, disclaimers
-├── hooks/                 # Custom React hooks (useAuth, useFarcaster)
-├── lib/                   # Utility functions + Farcaster DB/notifications
-├── types/                 # TypeScript definitions (auth, farcaster)
-├── supabase/              # Database migrations
-└── public/                # Static assets
-```
+### For your app's users
 
-## Development
+Foundational user-facing documentation you can customize for your app:
+
+| Template | Description |
+|----------|-------------|
+| [User Docs Overview](docs/user-docs/README.md) | How to use and customize user-facing docs |
+| [Help Page](docs/user-docs/help.md) | Getting started guide for end users |
+| [FAQ](docs/user-docs/faq.md) | Common questions and answers |
+| [Terms Template](docs/user-docs/terms-template.md) | Terms of service starting point |
+
+## Technology Stack
+
+| Category | Technology |
+|----------|------------|
+| Framework | [Next.js 14](https://nextjs.org) (App Router) |
+| Language | [TypeScript](https://www.typescriptlang.org) (strict mode) |
+| Styling | [Tailwind CSS](https://tailwindcss.com) |
+| Database | [Supabase](https://supabase.com) (PostgreSQL) |
+| Auth | [SIWE](https://login.xyz) + [iron-session](https://github.com/vvo/iron-session) |
+| Wallet | [OnchainKit](https://onchainkit.xyz) + [wagmi](https://wagmi.sh) + [viem](https://viem.sh) |
+| NFT | [Zora Protocol SDK](https://docs.zora.co/protocol-sdk) + [Zora Coins SDK](https://docs.zora.co/coins) |
+| Mini-App | [OnchainKit MiniKit](https://onchainkit.xyz) + [@farcaster/miniapp-sdk](https://miniapps.farcaster.xyz) |
+
+## Using as a Template
+
+This is a [GitHub Template Repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-template-repository). Click **"Use this template"** on GitHub to create your own repo from it.
+
+After creating your app:
 
 ```bash
-# Run development server
-npm run dev
+# Add the template as an upstream remote (for pulling future updates)
+git remote add upstream git@github.com:mbernier/base-app-template.git
 
-# Type check
-npm run type-check
-
-# Lint
-npm run lint
-
-# Format code
-npm run format
-
-# Build for production
-npm run build
+# Later, pull template improvements into your app
+git fetch upstream
+git merge upstream/main
 ```
 
-## Database Setup
-
-This template uses Supabase for the database. For local development:
-
-```bash
-# Start local Supabase
-npx supabase start
-
-# Apply migrations
-npx supabase db push
-
-# Open Supabase Studio
-open http://127.0.0.1:54342
-```
-
-## Ports
-
-| Service | Port |
-|---------|------|
-| Next.js Dev Server | 3100 |
-| Supabase API | 54340 |
-| Supabase DB | 54341 |
-| Supabase Studio | 54342 |
-| Supabase Mailpit | 54343 |
-
-## Deployment
-
-### Vercel (Recommended)
-
-1. Push to GitHub
-2. Connect to Vercel
-3. Set environment variables
-4. Deploy
-
-### Other Platforms
-
-```bash
-npm run build
-npm start
-```
-
-## Customization
-
-1. **Branding**: Update `NEXT_PUBLIC_APP_NAME` and colors in `tailwind.config.ts`
-2. **Token**: Set `NEXT_PUBLIC_TOKEN_ADDRESS` for your ERC-20 token
-3. **Features**: Add domain-specific pages in `app/`
-4. **Database**: Extend schema in `supabase/migrations/`
+See [TEMPLATE.md](TEMPLATE.md) for the full guide on customizing, pulling updates, and contributing back.
 
 ## Farcaster Mini App
 
@@ -204,6 +147,22 @@ await broadcastNotification({
 });
 ```
 
+## Development
+
+```bash
+npm run dev          # Start dev server (port 3100)
+npm run build        # Production build
+npm run type-check   # TypeScript validation
+npm run lint         # ESLint
+npm run format       # Prettier formatting
+```
+
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines, code standards, and the documentation update requirement.
+
+**Key rule**: Every code change must include corresponding documentation updates.
+
 ## License
 
-MIT
+[MIT](LICENSE) - Bernier LLC

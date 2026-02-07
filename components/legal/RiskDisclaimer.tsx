@@ -49,7 +49,7 @@ export function RiskDisclaimer({ onDismiss, className }: RiskDisclaimerProps) {
 // Compact version for inline usage
 export function RiskDisclaimerCompact({ className }: { className?: string }) {
   return (
-    <p className={`text-xs text-gray-500 ${className || ''}`}>
+    <p className={`text-xs text-gray-600 ${className || ''}`}>
       <AlertTriangle className="inline w-3 h-3 mr-1" aria-hidden="true" />
       Crypto investments carry risk. Not financial advice.
     </p>

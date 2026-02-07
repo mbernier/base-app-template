@@ -7,7 +7,7 @@ import {
 } from '@/lib/auth';
 import { upsertUser } from '@/lib/db';
 import { initializeSuperAdmin } from '@/lib/admin';
-import { logApiRequest, getAccountIdByAddress } from '@/lib/audit';
+import { logApiRequest } from '@/lib/audit';
 
 // GET - Generate SIWE message
 export async function GET(request: NextRequest) {
@@ -36,18 +36,16 @@ export async function GET(request: NextRequest) {
   await session.save();
 
   const status = 200;
-  const accountId = await getAccountIdByAddress(address);
   await logApiRequest({
     endpoint: '/api/auth/siwe',
     method: 'GET',
-    accountId: accountId || undefined,
     responseStatus: status,
     responseTimeMs: Date.now() - startTime,
   });
 
+  // Only return the prepared message - nonce is stored server-side in session
   return NextResponse.json({
     message: message.prepareMessage(),
-    nonce,
   });
 }
 
@@ -69,7 +67,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Message and signature required' }, { status });
     }
 
-    const result = await verifySiweSignature(message, signature);
+    // Retrieve session nonce for verification
+    const session = await getSession();
+    if (!session.nonce) {
+      const status = 401;
+      await logApiRequest({
+        endpoint: '/api/auth/siwe',
+        method: 'POST',
+        responseStatus: status,
+        responseTimeMs: Date.now() - startTime,
+      });
+      return NextResponse.json(
+        { error: 'No nonce found in session. Request a new SIWE message first.' },
+        { status }
+      );
+    }
+
+    // Verify signature with nonce, domain, and URI validation
+    const result = await verifySiweSignature(message, signature, session.nonce);
+
+    // Clear nonce after verification attempt (prevent replay)
+    session.nonce = undefined;
+    await session.save();
 
     if (!result.success) {
       const status = 401;
@@ -79,7 +98,7 @@ export async function POST(request: NextRequest) {
         responseStatus: status,
         responseTimeMs: Date.now() - startTime,
       });
-      return NextResponse.json({ error: result.error }, { status });
+      return NextResponse.json({ error: 'Authentication failed' }, { status });
     }
 
     // Create/update user in database
@@ -91,8 +110,7 @@ export async function POST(request: NextRequest) {
     // Initialize super admin if this is the configured address
     await initializeSuperAdmin(result.address!);
 
-    // Create session
-    const session = await getSession();
+    // Create session with auth data (session already exists from nonce validation above)
     session.address = result.address;
     session.chainId = result.chainId;
     session.isLoggedIn = true;

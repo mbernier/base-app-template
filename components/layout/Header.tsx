@@ -25,7 +25,7 @@ export function Header() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6">
+        <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
           <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors">
             Home
           </Link>

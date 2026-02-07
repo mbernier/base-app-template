@@ -32,17 +32,17 @@ export default function HomePage() {
         {!isLoading && !isWalletConnected && !isMiniApp && (
           <div className="flex flex-col items-center gap-4">
             <SignInButton />
-            <p className="text-sm text-gray-500">Connect with Smart Wallet or existing wallet</p>
+            <p className="text-sm text-gray-600">Connect with Smart Wallet or existing wallet</p>
           </div>
         )}
 
         {/* Wallet connected but not signed in with SIWE — only shown in standalone mode */}
         {!isLoading && isWalletConnected && !isLoggedIn && !isMiniApp && (
           <div className="card max-w-md mx-auto p-6">
-            <p className="text-sm text-gray-500 mb-2">Wallet connected</p>
+            <p className="text-sm text-gray-600 mb-2">Wallet connected</p>
             <p className="font-mono text-sm text-gray-900 mb-4">{walletAddress}</p>
             <SignInButton />
-            <p className="text-xs text-gray-500 mt-2">Sign the message to complete authentication</p>
+            <p className="text-xs text-gray-600 mt-2">Sign the message to complete authentication</p>
           </div>
         )}
 

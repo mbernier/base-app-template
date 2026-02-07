@@ -89,11 +89,10 @@ export function validateServerConfig(): void {
     return; // Skip validation on client
   }
 
-  if (!auth.sessionSecret || auth.sessionSecret === 'CHANGE_ME_GENERATE_A_REAL_SECRET_WITH_OPENSSL') {
-    if (app.isProduction) {
-      throw new Error('SESSION_SECRET must be set in production');
-    }
-    console.warn('[Config] Warning: SESSION_SECRET not properly set');
+  if (!auth.sessionSecret) {
+    throw new Error(
+      'SESSION_SECRET environment variable is required. Generate one with: openssl rand -base64 32'
+    );
   }
 
   if (!database.supabaseUrl || !database.supabaseAnonKey) {
@@ -108,4 +107,9 @@ export function validateServerConfig(): void {
       );
     }
   }
+}
+
+// Run validation on server-side module load (skip during build)
+if (typeof window === 'undefined' && process.env.NEXT_PHASE !== 'phase-production-build') {
+  validateServerConfig();
 }

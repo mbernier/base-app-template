@@ -103,12 +103,12 @@ export function UserAuditLog() {
   return (
     <div className="card p-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Activity Log</h2>
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="text-sm text-gray-600 mb-4">
         Your recent API activity and requests.
       </p>
 
       {isLoading && (
-        <div className="text-center py-8 text-gray-500">Loading...</div>
+        <div className="text-center py-8 text-gray-600">Loading...</div>
       )}
 
       {error && (
@@ -118,7 +118,7 @@ export function UserAuditLog() {
       {!isLoading && !error && data && (
         <>
           {data.entries.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-600">
               No activity recorded yet.
             </div>
           ) : (
@@ -137,7 +137,7 @@ export function UserAuditLog() {
                   <tbody>
                     {data.entries.map((entry) => (
                       <tr key={entry.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-2 px-2 text-gray-500 whitespace-nowrap">
+                        <td className="py-2 px-2 text-gray-600 whitespace-nowrap">
                           {new Date(entry.created_at).toLocaleString()}
                         </td>
                         <td className="py-2 px-2">
@@ -149,7 +149,7 @@ export function UserAuditLog() {
                         <td className="py-2 px-2">
                           <StatusBadge status={entry.response_status} />
                         </td>
-                        <td className="py-2 px-2 text-right text-gray-500">
+                        <td className="py-2 px-2 text-right text-gray-600">
                           {entry.response_time_ms ?? '-'}
                         </td>
                       </tr>
@@ -161,7 +161,7 @@ export function UserAuditLog() {
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-600">
                     Showing {page * limit + 1}-{Math.min((page + 1) * limit, data.total)} of {data.total}
                   </p>
                   <div className="flex gap-2">

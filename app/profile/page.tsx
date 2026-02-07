@@ -47,7 +47,7 @@ function ProfileContent() {
                   ${
                     activeTab === tab.id
                       ? 'border-blue-600 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      : 'border-transparent text-gray-600 hover:text-gray-700 hover:border-gray-300'
                   }
                 `}
               >
@@ -73,7 +73,7 @@ function ProfileContent() {
                 <Avatar className="w-16 h-16 rounded-full" />
                 <div>
                   <Name className="text-lg font-semibold text-gray-900" />
-                  <Address className="text-sm text-gray-500" />
+                  <Address className="text-sm text-gray-600" />
                 </div>
               </Identity>
             )}
@@ -81,14 +81,14 @@ function ProfileContent() {
             <div className="pt-4 border-t border-gray-200">
               <dl className="space-y-2">
                 <div className="flex justify-between">
-                  <dt className="text-sm text-gray-500">Address</dt>
+                  <dt className="text-sm text-gray-600">Address</dt>
                   <dd className="text-sm font-mono text-gray-900">
                     {address ? truncateAddress(address, 6) : '-'}
                   </dd>
                 </div>
                 {user?.createdAt && (
                   <div className="flex justify-between">
-                    <dt className="text-sm text-gray-500">Member since</dt>
+                    <dt className="text-sm text-gray-600">Member since</dt>
                     <dd className="text-sm text-gray-900">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </dd>
@@ -103,10 +103,10 @@ function ProfileContent() {
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Token Balance</h2>
 
             {balanceLoading ? (
-              <p className="text-gray-500">Loading balance...</p>
+              <p className="text-gray-600">Loading balance...</p>
             ) : (
               <p className="text-3xl font-bold text-gray-900">
-                {balanceFormatted} <span className="text-lg text-gray-500">{symbol}</span>
+                {balanceFormatted} <span className="text-lg text-gray-600">{symbol}</span>
               </p>
             )}
           </div>
