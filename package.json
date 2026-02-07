@@ -1,0 +1,42 @@
+{
+  "name": "base-app-template",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Base Mini App template - Foundation for building Base Mini Apps with SIWE, OnchainKit, and Supabase",
+  "scripts": {
+    "dev": "next dev -p 3100",
+    "build": "next build",
+    "start": "next start -p 3100",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@coinbase/onchainkit": "^0.36.6",
+    "@supabase/supabase-js": "^2.39.0",
+    "@tanstack/react-query": "^5.17.0",
+    "clsx": "^2.1.1",
+    "iron-session": "^8.0.0",
+    "lucide-react": "^0.300.0",
+    "next": "^14.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "siwe": "^2.1.4",
+    "viem": "^2.7.0",
+    "wagmi": "^2.5.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.1.0",
+    "postcss": "^8.4.0",
+    "prettier": "^3.2.0",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.3.0"
+  }
+}
