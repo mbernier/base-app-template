@@ -121,9 +121,7 @@ describe('farcaster config', () => {
       globalThis.window = originalWindow;
     }
 
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('account association')
-    );
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('account association'));
 
     warnSpy.mockRestore();
   });

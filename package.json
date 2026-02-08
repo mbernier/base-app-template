@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "postinstall": "cp node_modules/@coinbase/onchainkit/dist/assets/style.css public/onchainkit.css 2>/dev/null || true"
+    "postinstall": "cp node_modules/@coinbase/onchainkit/dist/assets/style.css public/onchainkit.css 2>/dev/null || true",
+    "prepare": "husky"
   },
   "dependencies": {
     "@coinbase/onchainkit": "^1.1.2",
@@ -36,6 +37,19 @@
     "wagmi": "^2.5.0",
     "zod": "^3.22.0"
   },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css}": [
+      "prettier --write"
+    ]
+  },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@testing-library/dom": "^10.4.1",
@@ -49,7 +63,9 @@
     "autoprefixer": "^10.4.0",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.1.0",
+    "husky": "^9.1.7",
     "jsdom": "^28.0.0",
+    "lint-staged": "^16.2.7",
     "postcss": "^8.4.0",
     "prettier": "^3.2.0",
     "tailwindcss": "^3.4.0",

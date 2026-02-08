@@ -138,10 +138,13 @@ describe('POST /api/auth/farcaster', () => {
 
     // Clean up accounts by addresses we tracked
     for (const addr of createdAccountAddresses) {
-      await supabase.from('farcaster_users').delete().eq(
-        'account_id',
-        (await supabase.from('accounts').select('id').eq('address', addr).single()).data?.id || ''
-      );
+      await supabase
+        .from('farcaster_users')
+        .delete()
+        .eq(
+          'account_id',
+          (await supabase.from('accounts').select('id').eq('address', addr).single()).data?.id || ''
+        );
       await supabase.from('accounts').delete().eq('address', addr);
     }
 

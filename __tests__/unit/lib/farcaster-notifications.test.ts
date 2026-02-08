@@ -13,10 +13,7 @@
  */
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { sendNotification, broadcastNotification } from '@/lib/farcaster-notifications';
-import {
-  upsertFarcasterUser,
-  updateNotificationToken,
-} from '@/lib/farcaster';
+import { upsertFarcasterUser, updateNotificationToken } from '@/lib/farcaster';
 import { createUntypedServerClient } from '@/lib/db';
 
 const TEST_PREFIX = `test-${Date.now()}`;
@@ -72,7 +69,9 @@ describe('farcaster-notifications', () => {
   const realFetch = global.fetch;
 
   // Mock function that only tracks calls to notification URLs
-  let notificationFetchMock: ReturnType<typeof vi.fn<(...args: Parameters<typeof fetch>) => ReturnType<typeof fetch>>>;
+  let notificationFetchMock: ReturnType<
+    typeof vi.fn<(...args: Parameters<typeof fetch>) => ReturnType<typeof fetch>>
+  >;
 
   beforeAll(async () => {
     const supabase = createUntypedServerClient();
@@ -238,20 +237,17 @@ describe('farcaster-notifications', () => {
 
       expect(result).toBe(true);
       expect(notificationFetchMock).toHaveBeenCalledTimes(1);
-      expect(notificationFetchMock).toHaveBeenCalledWith(
-        NOTIFICATION_URL_A,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            notificationId: TEST_PAYLOAD.notificationId,
-            title: TEST_PAYLOAD.title,
-            body: TEST_PAYLOAD.body,
-            targetUrl: TEST_PAYLOAD.targetUrl,
-            tokens: ['token-enabled'],
-          }),
-        }
-      );
+      expect(notificationFetchMock).toHaveBeenCalledWith(NOTIFICATION_URL_A, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          notificationId: TEST_PAYLOAD.notificationId,
+          title: TEST_PAYLOAD.title,
+          body: TEST_PAYLOAD.body,
+          targetUrl: TEST_PAYLOAD.targetUrl,
+          tokens: ['token-enabled'],
+        }),
+      });
     });
 
     it('returns false on HTTP error (non-2xx)', async () => {
@@ -301,8 +297,7 @@ describe('farcaster-notifications', () => {
       // verify our test URLs were not hit rather than asserting count === 0.
       const calls = notificationFetchMock.mock.calls;
       const ourUrlCalls = calls.filter(
-        (call: unknown[]) =>
-          call[0] === NOTIFICATION_URL_A || call[0] === NOTIFICATION_URL_B
+        (call: unknown[]) => call[0] === NOTIFICATION_URL_A || call[0] === NOTIFICATION_URL_B
       );
       expect(ourUrlCalls.length).toBe(0);
       expect(count).toBeGreaterThanOrEqual(0);

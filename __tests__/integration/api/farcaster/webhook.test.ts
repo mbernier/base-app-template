@@ -125,10 +125,7 @@ describe('POST /api/farcaster/webhook', () => {
     // operate on existing records (removed, notifications_enabled, notifications_disabled)
     const { data: account, error: accErr } = await supabase
       .from('accounts')
-      .upsert(
-        { address: PRECREATED_ADDRESS, chain_id: 8453 },
-        { onConflict: 'address' }
-      )
+      .upsert({ address: PRECREATED_ADDRESS, chain_id: 8453 }, { onConflict: 'address' })
       .select()
       .single();
 
@@ -138,17 +135,15 @@ describe('POST /api/farcaster/webhook', () => {
 
     // Create farcaster_users rows for fids that need pre-existing records
     for (const fid of [FID_REMOVED, FID_NOTIF_ENABLED, FID_NOTIF_DISABLED]) {
-      const { error } = await supabase
-        .from('farcaster_users')
-        .upsert(
-          {
-            account_id: account.id,
-            fid,
-            username: `preuser_${fid}`,
-            notifications_enabled: fid === FID_NOTIF_DISABLED, // start enabled for disable test
-          },
-          { onConflict: 'fid' }
-        );
+      const { error } = await supabase.from('farcaster_users').upsert(
+        {
+          account_id: account.id,
+          fid,
+          username: `preuser_${fid}`,
+          notifications_enabled: fid === FID_NOTIF_DISABLED, // start enabled for disable test
+        },
+        { onConflict: 'fid' }
+      );
 
       if (error) {
         throw new Error(`Failed to pre-create farcaster_user fid=${fid}: ${error.message}`);

@@ -128,13 +128,9 @@ describe('AppShell', () => {
 
       const wrapper = container.firstElementChild as HTMLElement;
       expect(wrapper.style.paddingTop).toBe('var(--ock-minikit-safe-area-inset-top, 0px)');
-      expect(wrapper.style.paddingBottom).toBe(
-        'var(--ock-minikit-safe-area-inset-bottom, 0px)'
-      );
+      expect(wrapper.style.paddingBottom).toBe('var(--ock-minikit-safe-area-inset-bottom, 0px)');
       expect(wrapper.style.paddingLeft).toBe('var(--ock-minikit-safe-area-inset-left, 0px)');
-      expect(wrapper.style.paddingRight).toBe(
-        'var(--ock-minikit-safe-area-inset-right, 0px)'
-      );
+      expect(wrapper.style.paddingRight).toBe('var(--ock-minikit-safe-area-inset-right, 0px)');
     });
 
     it('renders children inside main#main-content', () => {

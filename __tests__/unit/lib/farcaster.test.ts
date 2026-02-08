@@ -125,12 +125,7 @@ describe('farcaster', () => {
       expect(removed!.removed_at).not.toBeNull();
 
       // Re-add should clear removed_at
-      const readded = await upsertFarcasterUser(
-        testAccountId,
-        testFid1,
-        'readded',
-        'Readded User'
-      );
+      const readded = await upsertFarcasterUser(testAccountId, testFid1, 'readded', 'Readded User');
 
       expect(readded.removed_at).toBeNull();
       expect(readded.username).toBe('readded');
@@ -226,11 +221,7 @@ describe('farcaster', () => {
   describe('getNotificationEnabledUsers', () => {
     it('returns only users with notifications enabled and not removed', async () => {
       // Create users: one enabled, one disabled, one removed
-      const enabledUser = await upsertFarcasterUser(
-        testAccountId,
-        testFid3,
-        'enabled-user'
-      );
+      await upsertFarcasterUser(testAccountId, testFid3, 'enabled-user');
       createdFids.push(testFid3);
       await updateNotificationToken(
         testFid3,
@@ -238,11 +229,7 @@ describe('farcaster', () => {
         true
       );
 
-      const disabledUser = await upsertFarcasterUser(
-        testAccountId,
-        testFid4,
-        'disabled-user'
-      );
+      await upsertFarcasterUser(testAccountId, testFid4, 'disabled-user');
       createdFids.push(testFid4);
       await updateNotificationToken(
         testFid4,
@@ -250,11 +237,7 @@ describe('farcaster', () => {
         false
       );
 
-      const removedUser = await upsertFarcasterUser(
-        testAccountId,
-        testFid5,
-        'removed-user'
-      );
+      await upsertFarcasterUser(testAccountId, testFid5, 'removed-user');
       createdFids.push(testFid5);
       await updateNotificationToken(
         testFid5,
