@@ -5,6 +5,7 @@ A production-ready Next.js 14 template for building Base Mini Apps with wallet a
 ## What's Included
 
 ### Core Infrastructure
+
 - **Next.js 14** App Router with TypeScript strict mode
 - **SIWE Authentication** (Sign-In With Ethereum) via iron-session
 - **Supabase** PostgreSQL database with RLS policies
@@ -12,32 +13,36 @@ A production-ready Next.js 14 template for building Base Mini Apps with wallet a
 - **Tailwind CSS** styling with accessible UI components
 
 ### NFT Abstraction Layer
+
 A strategy-pattern system supporting three providers behind a unified API:
 
-| Provider | Use Case | Standards |
-|----------|----------|-----------|
-| **OnchainKit** | Existing ERC-721/1155 contracts | ERC-721, ERC-1155 |
+| Provider          | Use Case                                         | Standards         |
+| ----------------- | ------------------------------------------------ | ----------------- |
+| **OnchainKit**    | Existing ERC-721/1155 contracts                  | ERC-721, ERC-1155 |
 | **Zora Protocol** | New NFT creation + minting with referral revenue | ERC-721, ERC-1155 |
-| **Zora Coins** | Fungible coin creation + trading | ERC-20 |
+| **Zora Coins**    | Fungible coin creation + trading                 | ERC-20            |
 
 Application code never calls provider SDKs directly. The server resolves the correct provider from collection config and builds transactions.
 
 **Key files:**
+
 - `lib/nft/` - Provider abstraction (types, registry, facade, provider implementations)
 - `hooks/useNFTMint.ts` - Client-side mint flow (prepare tx -> wagmi -> record)
 - `components/nft/` - Display and mint UI components
 - `app/api/nft/` - Public NFT API routes
 
 ### Admin System
+
 Role-based access control with three tiers:
 
-| Role | Capabilities |
-|------|-------------|
-| **user** | Default role, standard app access |
-| **admin** | Manage collections, view mint analytics, configure settings |
-| **superadmin** | All admin powers + user role management |
+| Role           | Capabilities                                                |
+| -------------- | ----------------------------------------------------------- |
+| **user**       | Default role, standard app access                           |
+| **admin**      | Manage collections, view mint analytics, configure settings |
+| **superadmin** | All admin powers + user role management                     |
 
 **Key files:**
+
 - `lib/admin.ts` - Role utilities (server-side)
 - `lib/middleware.ts` - `requireAdmin` middleware option
 - `app/admin/` - Admin dashboard pages
@@ -45,9 +50,11 @@ Role-based access control with three tiers:
 - `components/admin/` - Admin UI components
 
 ### Farcaster Mini-App Support
+
 Dual-mode operation: the app works as a standalone web app and as an embedded Farcaster/Base mini-app. Built on OnchainKit MiniKit.
 
 **Key files:**
+
 - `hooks/useFarcaster.tsx` - FarcasterProvider + useFarcasterContext hook
 - `components/layout/AppShell.tsx` - Layout wrapper that hides chrome in mini-app mode
 - `lib/farcaster.ts` - Server-side Farcaster DB operations
@@ -58,16 +65,21 @@ Dual-mode operation: the app works as a standalone web app and as an embedded Fa
 - `types/farcaster.ts` - Farcaster TypeScript types
 
 ### Database Schema
+
 Three migrations provide the full schema:
 
-| Table | Purpose |
-|-------|---------|
-| `accounts` | Users with wallet address and role |
-| `app_settings` | Key-value admin configuration |
-| `nft_collections` | NFT collections with provider routing |
-| `nft_tokens` | Individual tokens within collections |
-| `nft_mints` | Mint event tracking with tx hashes |
-| `farcaster_users` | Farcaster FID-to-account link, notification tokens |
+| Table              | Purpose                                            |
+| ------------------ | -------------------------------------------------- |
+| `accounts`         | Users with wallet address and role                 |
+| `sessions`         | Session tracking (IP hash, user agent, expiry)     |
+| `app_settings`     | Key-value admin configuration                      |
+| `nft_collections`  | NFT collections with provider routing              |
+| `nft_tokens`       | Individual tokens within collections               |
+| `nft_mints`        | Mint event tracking with tx hashes                 |
+| `farcaster_users`  | Farcaster FID-to-account link, notification tokens |
+| `page_visits`      | Analytics: page view tracking                      |
+| `analytics_events` | Analytics: custom event tracking                   |
+| `api_audit_log`    | API request audit trail                            |
 
 ---
 
@@ -98,6 +110,7 @@ cp .env.example .env.local
 ```
 
 Fill in your values. Required:
+
 - `NEXT_PUBLIC_CDP_API_KEY` - from https://portal.cdp.coinbase.com
 - `SESSION_SECRET` - `openssl rand -base64 32`
 - Supabase credentials (see `.env.example` for details)
@@ -121,38 +134,38 @@ npm run dev                # http://localhost:3100
 
 ### Customize (your app-specific code)
 
-| Area | What to change |
-|------|---------------|
-| `app/page.tsx` | Your homepage |
-| `app/` pages | Add your app's routes and pages |
-| `app/api/` | Add your app-specific API routes |
-| `components/` | Add domain-specific components |
-| `hooks/` | Add domain-specific hooks |
-| `types/` | Add your app's type definitions |
-| `lib/config.ts` | Update `app.name`, `app.description` |
+| Area                   | What to change                            |
+| ---------------------- | ----------------------------------------- |
+| `app/page.tsx`         | Your homepage                             |
+| `app/` pages           | Add your app's routes and pages           |
+| `app/api/`             | Add your app-specific API routes          |
+| `components/`          | Add domain-specific components            |
+| `hooks/`               | Add domain-specific hooks                 |
+| `types/`               | Add your app's type definitions           |
+| `lib/config.ts`        | Update `app.name`, `app.description`      |
 | `supabase/migrations/` | Add new migrations (004+) for your schema |
-| `.env.local` | Your environment variables |
-| `public/` | Your assets, favicon, etc. |
+| `.env.local`           | Your environment variables                |
+| `public/`              | Your assets, favicon, etc.                |
 
 ### Leave alone (template infrastructure)
 
-| Area | Why |
-|------|-----|
-| `lib/nft/` | NFT provider abstraction - extend via new providers, don't modify existing |
-| `lib/admin.ts` | Admin role system |
-| `lib/middleware.ts` | Auth/admin middleware chain |
-| `lib/auth.ts` | SIWE authentication |
-| `lib/db.ts` | Database client and base types |
-| `components/ui/` | Base UI components (Button, Input, Modal, etc.) |
-| `components/auth/` | Auth guards and wallet components |
-| `app/admin/` | Admin dashboard (customize appearance, don't restructure) |
-| `supabase/migrations/001_*.sql` | Base schema |
-| `supabase/migrations/002_*.sql` | NFT + admin schema |
-| `supabase/migrations/003_*.sql` | Farcaster schema |
-| `hooks/useFarcaster.tsx` | Farcaster context provider |
-| `lib/farcaster.ts` | Farcaster DB operations |
-| `lib/farcaster-notifications.ts` | Notification utilities |
-| `components/layout/AppShell.tsx` | Layout chrome toggling |
+| Area                             | Why                                                                        |
+| -------------------------------- | -------------------------------------------------------------------------- |
+| `lib/nft/`                       | NFT provider abstraction - extend via new providers, don't modify existing |
+| `lib/admin.ts`                   | Admin role system                                                          |
+| `lib/middleware.ts`              | Auth/admin middleware chain                                                |
+| `lib/auth.ts`                    | SIWE authentication                                                        |
+| `lib/db.ts`                      | Database client and base types                                             |
+| `components/ui/`                 | Base UI components (Button, Input, Modal, etc.)                            |
+| `components/auth/`               | Auth guards and wallet components                                          |
+| `app/admin/`                     | Admin dashboard (customize appearance, don't restructure)                  |
+| `supabase/migrations/001_*.sql`  | Base schema                                                                |
+| `supabase/migrations/002_*.sql`  | NFT + admin schema                                                         |
+| `supabase/migrations/003_*.sql`  | Farcaster schema                                                           |
+| `hooks/useFarcaster.tsx`         | Farcaster context provider                                                 |
+| `lib/farcaster.ts`               | Farcaster DB operations                                                    |
+| `lib/farcaster-notifications.ts` | Notification utilities                                                     |
+| `components/layout/AppShell.tsx` | Layout chrome toggling                                                     |
 
 ---
 
@@ -166,6 +179,7 @@ git merge upstream/main
 ```
 
 Resolve any conflicts. Conflicts are most likely in:
+
 - `lib/config.ts` (if you added config groups)
 - `package.json` (dependency versions)
 - Migration files (if template adds new migrations with the same number)
@@ -204,6 +218,7 @@ git push origin improve/description
 ### What belongs in the template vs. your app
 
 **Template-worthy:**
+
 - Bug fixes in `lib/`, `components/ui/`, auth, admin, NFT abstraction
 - New NFT providers
 - UI component improvements
@@ -211,6 +226,7 @@ git push origin improve/description
 - Migration fixes
 
 **App-specific (keep in your repo):**
+
 - Business logic, pages, domain components
 - App-specific API routes
 - Custom styling/branding
@@ -253,19 +269,40 @@ Client Component
 
 ## Ports
 
-| Service | Port |
-|---------|------|
-| Dev Server | 3100 |
-| Supabase API | 54340 |
-| Supabase DB | 54341 |
+| Service         | Port  |
+| --------------- | ----- |
+| Dev Server      | 3100  |
+| Supabase API    | 54340 |
+| Supabase DB     | 54341 |
 | Supabase Studio | 54342 |
 
 ## Commands
 
 ```bash
-npm run dev          # Start dev server
+npm run dev          # Start dev server (port 3100)
 npm run build        # Production build
 npm run lint         # ESLint
 npm run type-check   # TypeScript check
 npm run format       # Prettier
+npm run test         # Run all tests (vitest)
+npm run test:watch   # Watch mode
+npm run test:e2e     # Playwright end-to-end tests
+```
+
+## Git Hooks
+
+Pre-commit and pre-push hooks are enforced via Husky (installed automatically with `npm install`):
+
+- **Pre-commit**: lint-staged (ESLint + Prettier on staged files) + type-check
+- **Pre-push**: Full lint + type-check + test suite
+
+## Testing
+
+Tests use a real local Supabase instance. Set up:
+
+```bash
+npx supabase start && npx supabase db push
+cp .env.test.example .env.test
+# Fill values from: npx supabase status
+npm run test
 ```

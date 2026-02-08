@@ -47,42 +47,42 @@ For detailed setup instructions, see [Getting Started](docs/getting-started.md).
 
 ## Documentation
 
-| Guide | Description |
-|-------|-------------|
-| [Getting Started](docs/getting-started.md) | Installation, environment setup, first run |
-| [Architecture](docs/architecture.md) | System design, request flow, directory structure |
-| [Authentication](docs/authentication.md) | SIWE flow, sessions, auth guards, protected routes |
-| [NFT Abstraction](docs/nft-abstraction.md) | Provider system, mint flow, adding new providers |
-| [Admin System](docs/admin-system.md) | Roles, dashboard, collection management, settings |
-| [API Reference](docs/api-reference.md) | Every endpoint with request/response examples |
-| [UI Kit](docs/ui-kit.md) | Component catalog, props, accessibility, design system |
-| [Database](docs/database.md) | Schema, migrations, RLS, query patterns |
-| [Configuration](docs/configuration.md) | All environment variables and config options |
-| [Testing](docs/testing.md) | Testing philosophy, patterns, running tests |
+| Guide                                      | Description                                            |
+| ------------------------------------------ | ------------------------------------------------------ |
+| [Getting Started](docs/getting-started.md) | Installation, environment setup, first run             |
+| [Architecture](docs/architecture.md)       | System design, request flow, directory structure       |
+| [Authentication](docs/authentication.md)   | SIWE flow, sessions, auth guards, protected routes     |
+| [NFT Abstraction](docs/nft-abstraction.md) | Provider system, mint flow, adding new providers       |
+| [Admin System](docs/admin-system.md)       | Roles, dashboard, collection management, settings      |
+| [API Reference](docs/api-reference.md)     | Every endpoint with request/response examples          |
+| [UI Kit](docs/ui-kit.md)                   | Component catalog, props, accessibility, design system |
+| [Database](docs/database.md)               | Schema, migrations, RLS, query patterns                |
+| [Configuration](docs/configuration.md)     | All environment variables and config options           |
+| [Testing](docs/testing.md)                 | Testing philosophy, patterns, running tests            |
 
 ### For your app's users
 
 Foundational user-facing documentation you can customize for your app:
 
-| Template | Description |
-|----------|-------------|
-| [User Docs Overview](docs/user-docs/README.md) | How to use and customize user-facing docs |
-| [Help Page](docs/user-docs/help.md) | Getting started guide for end users |
-| [FAQ](docs/user-docs/faq.md) | Common questions and answers |
-| [Terms Template](docs/user-docs/terms-template.md) | Terms of service starting point |
+| Template                                           | Description                               |
+| -------------------------------------------------- | ----------------------------------------- |
+| [User Docs Overview](docs/user-docs/README.md)     | How to use and customize user-facing docs |
+| [Help Page](docs/user-docs/help.md)                | Getting started guide for end users       |
+| [FAQ](docs/user-docs/faq.md)                       | Common questions and answers              |
+| [Terms Template](docs/user-docs/terms-template.md) | Terms of service starting point           |
 
 ## Technology Stack
 
-| Category | Technology |
-|----------|------------|
-| Framework | [Next.js 14](https://nextjs.org) (App Router) |
-| Language | [TypeScript](https://www.typescriptlang.org) (strict mode) |
-| Styling | [Tailwind CSS](https://tailwindcss.com) |
-| Database | [Supabase](https://supabase.com) (PostgreSQL) |
-| Auth | [SIWE](https://login.xyz) + [iron-session](https://github.com/vvo/iron-session) |
-| Wallet | [OnchainKit](https://onchainkit.xyz) + [wagmi](https://wagmi.sh) + [viem](https://viem.sh) |
-| NFT | [Zora Protocol SDK](https://docs.zora.co/protocol-sdk) + [Zora Coins SDK](https://docs.zora.co/coins) |
-| Mini-App | [OnchainKit MiniKit](https://onchainkit.xyz) + [@farcaster/miniapp-sdk](https://miniapps.farcaster.xyz) |
+| Category  | Technology                                                                                              |
+| --------- | ------------------------------------------------------------------------------------------------------- |
+| Framework | [Next.js 14](https://nextjs.org) (App Router)                                                           |
+| Language  | [TypeScript](https://www.typescriptlang.org) (strict mode)                                              |
+| Styling   | [Tailwind CSS](https://tailwindcss.com)                                                                 |
+| Database  | [Supabase](https://supabase.com) (PostgreSQL)                                                           |
+| Auth      | [SIWE](https://login.xyz) + [iron-session](https://github.com/vvo/iron-session)                         |
+| Wallet    | [OnchainKit](https://onchainkit.xyz) + [wagmi](https://wagmi.sh) + [viem](https://viem.sh)              |
+| NFT       | [Zora Protocol SDK](https://docs.zora.co/protocol-sdk) + [Zora Coins SDK](https://docs.zora.co/coins)   |
+| Mini-App  | [OnchainKit MiniKit](https://onchainkit.xyz) + [@farcaster/miniapp-sdk](https://miniapps.farcaster.xyz) |
 
 ## Using as a Template
 
@@ -155,7 +155,33 @@ npm run build        # Production build
 npm run type-check   # TypeScript validation
 npm run lint         # ESLint
 npm run format       # Prettier formatting
+npm run test         # Run all tests (vitest)
+npm run test:watch   # Run tests in watch mode
+npm run test:e2e     # Run Playwright end-to-end tests
 ```
+
+### Git Hooks
+
+Pre-commit and pre-push hooks are enforced via [Husky](https://typicode.github.io/husky/):
+
+- **Pre-commit**: lint-staged (ESLint + Prettier on staged files) + TypeScript type-check
+- **Pre-push**: Full lint + type-check + test suite
+
+Hooks install automatically via `npm install` (the `prepare` script runs `husky`).
+
+### Testing
+
+Tests use a real local Supabase instance (not mocks). Set up the test database:
+
+```bash
+npx supabase start
+npx supabase db push
+cp .env.test.example .env.test
+# Fill in values from: npx supabase status
+npm run test
+```
+
+See [Testing](docs/testing.md) for the full testing philosophy and patterns.
 
 ## Contributing
 

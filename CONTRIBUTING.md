@@ -19,6 +19,7 @@ npm install
 cp .env.example .env.local
 # Fill in .env.local values
 npx supabase start
+npx supabase db push     # Apply all migrations
 npm run dev
 ```
 
@@ -107,20 +108,20 @@ git push origin improve/description
 
 This is a hard requirement, not a suggestion. When your PR changes code, you must also update the relevant docs:
 
-| What you changed | Docs to update |
-|-----------------|----------------|
-| New/modified API route | `docs/api-reference.md` |
-| New/modified component | `docs/ui-kit.md` |
-| Database schema change | `docs/database.md` |
-| New/modified hook | Relevant feature doc (`docs/nft-abstraction.md`, etc.) |
-| Auth changes | `docs/authentication.md` |
-| NFT provider changes | `docs/nft-abstraction.md` |
-| Admin system changes | `docs/admin-system.md` |
-| Config/env var changes | `docs/configuration.md` |
-| Architecture changes | `docs/architecture.md` |
-| Testing patterns | `docs/testing.md` |
-| Setup/install changes | `docs/getting-started.md` |
-| User-facing features | `docs/user-docs/` |
+| What you changed       | Docs to update                                         |
+| ---------------------- | ------------------------------------------------------ |
+| New/modified API route | `docs/api-reference.md`                                |
+| New/modified component | `docs/ui-kit.md`                                       |
+| Database schema change | `docs/database.md`                                     |
+| New/modified hook      | Relevant feature doc (`docs/nft-abstraction.md`, etc.) |
+| Auth changes           | `docs/authentication.md`                               |
+| NFT provider changes   | `docs/nft-abstraction.md`                              |
+| Admin system changes   | `docs/admin-system.md`                                 |
+| Config/env var changes | `docs/configuration.md`                                |
+| Architecture changes   | `docs/architecture.md`                                 |
+| Testing patterns       | `docs/testing.md`                                      |
+| Setup/install changes  | `docs/getting-started.md`                              |
+| User-facing features   | `docs/user-docs/`                                      |
 
 Additionally, update `AGENTINFO.md` if the change affects patterns that AI agents need to know about.
 
@@ -129,22 +130,44 @@ PRs without documentation updates will be asked to add them before merge.
 ## Testing Requirements
 
 - If we own it, we test it directly - no mocking internal systems
-- Use real Supabase for database tests
-- Mocks are only for external third-party services (Zora SDKs, wagmi)
+- Use real Supabase for database tests (Docker via `npx supabase start`)
+- Mocks are only for external third-party services (Zora SDKs, wagmi, OnchainKit MiniKit)
 - All mocks must have validation tests that verify they match the real API
 - Tests must pass 100% before PR merge
 
+### Test setup
+
 ```bash
-npm run test           # Run all tests
+npx supabase start            # Start local Supabase (Docker)
+npx supabase db push           # Apply all migrations
+cp .env.test.example .env.test # Create test env file
+# Fill in values from: npx supabase status
+```
+
+### Running tests
+
+```bash
+npm run test           # Run all tests (vitest)
+npm run test:watch     # Watch mode
+npm run test:e2e       # Playwright end-to-end tests
 npm run type-check     # TypeScript validation
 npm run lint           # ESLint
 ```
+
+## Git Hooks
+
+[Husky](https://typicode.github.io/husky/) enforces quality gates automatically:
+
+- **Pre-commit**: lint-staged runs ESLint + Prettier on staged files, then `tsc --noEmit`
+- **Pre-push**: Full `npm run lint` + `npm run type-check` + `npm run test`
+
+Hooks install automatically when you run `npm install`. Do not bypass hooks with `--no-verify` unless there is a documented reason.
 
 ## Pull Request Process
 
 1. Create a feature branch from `main`
 2. Make your changes with documentation updates
-3. Ensure all checks pass: `npm run type-check && npm run lint`
+3. Ensure all checks pass: `npm run type-check && npm run lint && npm run test`
 4. Write a clear PR description explaining what changed and why
 5. Reference any related issues
 6. Request review
