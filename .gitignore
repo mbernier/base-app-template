@@ -28,6 +28,7 @@ yarn-error.log*
 # Local env files
 .env
 .env.local
+.env.test
 .env.development.local
 .env.test.local
 .env.production.local
@@ -49,6 +50,9 @@ next-env.d.ts
 # Supabase
 supabase/.branches
 supabase/.temp
+
+# Generated CSS (copied from node_modules via postinstall)
+public/onchainkit.css
 
 # Git worktrees
 .worktrees/

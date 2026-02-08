@@ -44,8 +44,21 @@ Role-based access control with three tiers:
 - `app/api/admin/` - Admin API routes
 - `components/admin/` - Admin UI components
 
+### Farcaster Mini-App Support
+Dual-mode operation: the app works as a standalone web app and as an embedded Farcaster/Base mini-app. Built on OnchainKit MiniKit.
+
+**Key files:**
+- `hooks/useFarcaster.tsx` - FarcasterProvider + useFarcasterContext hook
+- `components/layout/AppShell.tsx` - Layout wrapper that hides chrome in mini-app mode
+- `lib/farcaster.ts` - Server-side Farcaster DB operations
+- `lib/farcaster-notifications.ts` - Push notification utilities
+- `app/api/auth/farcaster/route.ts` - Farcaster auto-auth endpoint
+- `app/api/farcaster/webhook/route.ts` - Lifecycle event webhook
+- `app/.well-known/farcaster.json/route.ts` - Dynamic manifest (served from env vars)
+- `types/farcaster.ts` - Farcaster TypeScript types
+
 ### Database Schema
-Two migrations provide the full schema:
+Three migrations provide the full schema:
 
 | Table | Purpose |
 |-------|---------|
@@ -54,6 +67,7 @@ Two migrations provide the full schema:
 | `nft_collections` | NFT collections with provider routing |
 | `nft_tokens` | Individual tokens within collections |
 | `nft_mints` | Mint event tracking with tx hashes |
+| `farcaster_users` | Farcaster FID-to-account link, notification tokens |
 
 ---
 
@@ -116,7 +130,7 @@ npm run dev                # http://localhost:3100
 | `hooks/` | Add domain-specific hooks |
 | `types/` | Add your app's type definitions |
 | `lib/config.ts` | Update `app.name`, `app.description` |
-| `supabase/migrations/` | Add new migrations (003+) for your schema |
+| `supabase/migrations/` | Add new migrations (004+) for your schema |
 | `.env.local` | Your environment variables |
 | `public/` | Your assets, favicon, etc. |
 
@@ -134,6 +148,11 @@ npm run dev                # http://localhost:3100
 | `app/admin/` | Admin dashboard (customize appearance, don't restructure) |
 | `supabase/migrations/001_*.sql` | Base schema |
 | `supabase/migrations/002_*.sql` | NFT + admin schema |
+| `supabase/migrations/003_*.sql` | Farcaster schema |
+| `hooks/useFarcaster.tsx` | Farcaster context provider |
+| `lib/farcaster.ts` | Farcaster DB operations |
+| `lib/farcaster-notifications.ts` | Notification utilities |
+| `components/layout/AppShell.tsx` | Layout chrome toggling |
 
 ---
 
@@ -151,7 +170,7 @@ Resolve any conflicts. Conflicts are most likely in:
 - `package.json` (dependency versions)
 - Migration files (if template adds new migrations with the same number)
 
-**Tip:** Keep your app's migrations numbered from `003` onwards to avoid conflicts with template migrations.
+**Tip:** Keep your app's migrations numbered from `004` onwards to avoid conflicts with template migrations.
 
 ---
 

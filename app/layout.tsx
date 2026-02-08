@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { AppProviders } from '@/components/providers/AppProviders';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { MobileNav } from '@/components/layout/MobileNav';
-import { app } from '@/lib/config';
+import { AppShell } from '@/components/layout/AppShell';
+import { app, farcaster } from '@/lib/config';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -31,6 +29,25 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  other: {
+    ...(farcaster.enabled
+      ? {
+          'fc:miniapp': JSON.stringify({
+            version: '1',
+            imageUrl: farcaster.imageUrl || `${app.url}/og-image.png`,
+            button: {
+              title: farcaster.buttonTitle,
+              action: {
+                type: 'launch_miniapp',
+                url: app.url,
+                splashImageUrl: farcaster.splashImageUrl || `${app.url}/splash.png`,
+                splashBackgroundColor: farcaster.splashBgColor,
+              },
+            },
+          }),
+        }
+      : {}),
+  },
 };
 
 export const viewport: Viewport = {
@@ -42,23 +59,12 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="stylesheet" href="/onchainkit.css" />
+      </head>
       <body>
         <AppProviders>
-          {/* Skip to content link for keyboard navigation (WCAG 2.4.1) */}
-          <a
-            href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-medium"
-          >
-            Skip to main content
-          </a>
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main id="main-content" className="flex-1 pb-16 md:pb-0">
-              {children}
-            </main>
-            <Footer className="hidden md:block" />
-            <MobileNav className="md:hidden" />
-          </div>
+          <AppShell>{children}</AppShell>
         </AppProviders>
       </body>
     </html>

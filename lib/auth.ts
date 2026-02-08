@@ -11,6 +11,8 @@ export interface SessionData {
   nonce?: string;
   tosAcceptedVersion?: string;
   tosAcceptedAt?: string;
+  fid?: number;
+  authMethod?: 'wallet' | 'farcaster';
 }
 
 // Validate session secret at module load time - hard fail if missing
@@ -24,22 +26,24 @@ function getSessionPassword(): string {
   return secret;
 }
 
-// Session options
-const sessionOptions = {
-  password: getSessionPassword(),
-  cookieName: 'base_app_session',
-  cookieOptions: {
-    secure: app.isProduction,
-    httpOnly: true,
-    sameSite: 'lax' as const,
-    maxAge: auth.sessionDuration,
-  },
-};
+// Session options — built lazily to avoid hard-fail during next build page collection
+function getSessionOptions() {
+  return {
+    password: getSessionPassword(),
+    cookieName: 'base_app_session',
+    cookieOptions: {
+      secure: app.isProduction,
+      httpOnly: true,
+      sameSite: 'lax' as const,
+      maxAge: auth.sessionDuration,
+    },
+  };
+}
 
 // Get session
 export async function getSession(): Promise<IronSession<SessionData>> {
   const cookieStore = await cookies();
-  return getIronSession<SessionData>(cookieStore, sessionOptions);
+  return getIronSession<SessionData>(cookieStore, getSessionOptions());
 }
 
 // Generate SIWE message

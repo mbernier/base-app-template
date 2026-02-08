@@ -57,6 +57,21 @@ export const nft = {
   zoraPlatformReferrer: process.env.ZORA_PLATFORM_REFERRER_ADDRESS as `0x${string}` | undefined,
 };
 
+// Farcaster Mini-App configuration
+export const farcaster = {
+  enabled: process.env.NEXT_PUBLIC_FARCASTER_ENABLED === 'true',
+  // Manifest - account association (generated via Farcaster/Base tools)
+  accountHeader: process.env.FARCASTER_ACCOUNT_HEADER || '',
+  accountPayload: process.env.FARCASTER_ACCOUNT_PAYLOAD || '',
+  accountSignature: process.env.FARCASTER_ACCOUNT_SIGNATURE || '',
+  // Manifest - mini-app metadata
+  iconUrl: process.env.NEXT_PUBLIC_FARCASTER_ICON_URL || '',
+  imageUrl: process.env.NEXT_PUBLIC_FARCASTER_IMAGE_URL || '',
+  splashImageUrl: process.env.NEXT_PUBLIC_FARCASTER_SPLASH_IMAGE_URL || '',
+  splashBgColor: process.env.NEXT_PUBLIC_FARCASTER_SPLASH_BG_COLOR || '#ffffff',
+  buttonTitle: process.env.NEXT_PUBLIC_FARCASTER_BUTTON_TITLE || 'Launch',
+};
+
 // Admin configuration
 export const admin = {
   initialSuperAdminAddress: process.env.INITIAL_SUPER_ADMIN_ADDRESS as string | undefined,
@@ -83,9 +98,18 @@ export function validateServerConfig(): void {
   if (!database.supabaseUrl || !database.supabaseAnonKey) {
     console.warn('[Config] Warning: Supabase configuration incomplete');
   }
+
+  if (farcaster.enabled) {
+    if (!farcaster.accountHeader || !farcaster.accountPayload || !farcaster.accountSignature) {
+      console.warn(
+        '[Config] Warning: Farcaster enabled but account association values are missing. ' +
+          'The manifest at /.well-known/farcaster.json will be incomplete.'
+      );
+    }
+  }
 }
 
-// Run validation on server-side module load
-if (typeof window === 'undefined') {
+// Run validation on server-side module load (skip during build)
+if (typeof window === 'undefined' && process.env.NEXT_PHASE !== 'phase-production-build') {
   validateServerConfig();
 }

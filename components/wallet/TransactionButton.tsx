@@ -1,8 +1,9 @@
 'use client';
 
+import type { ComponentType } from 'react';
 import {
   Transaction,
-  TransactionButton,
+  TransactionButton as TransactionButtonBase,
   TransactionSponsor,
   TransactionStatus,
   TransactionStatusLabel,
@@ -11,6 +12,10 @@ import {
 } from '@coinbase/onchainkit/transaction';
 import type { ContractFunctionParameters } from 'viem';
 import { CHAIN } from '@/lib/tokens';
+
+// OnchainKit v1 component types are built for React 19 — cast for React 18 compat
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const TransactionButton = TransactionButtonBase as ComponentType<any>;
 
 interface TransactionButtonWrapperProps {
   calls: ContractFunctionParameters[];

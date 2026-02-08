@@ -50,6 +50,8 @@ export async function GET() {
       address: session.address,
       chainId: session.chainId,
       tosAcceptedVersion: session.tosAcceptedVersion,
+      fid: session.fid,
+      authMethod: session.authMethod,
       user,
     });
   } catch (error) {

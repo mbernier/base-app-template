@@ -11,6 +11,8 @@ Base App Template provides everything you need to build onchain applications on 
 ### What's included
 
 - **Wallet Authentication** - SIWE (Sign-In With Ethereum) with iron-session, OnchainKit wallet integration, and Smart Wallet support for gasless transactions
+- **Farcaster Mini-App Support** - Dual-mode: standalone web + embedded Farcaster/Base mini-app via OnchainKit MiniKit
+- **Farcaster Auto-Auth** - Automatic authentication when running inside a Farcaster client
 - **NFT Abstraction Layer** - Strategy-pattern provider system supporting OnchainKit, Zora Protocol SDK, and Zora Coins SDK behind a single unified API
 - **Admin System** - Role-based access control (user/admin/superadmin) with a dashboard for managing collections, viewing mint analytics, and configuring settings
 - **Database** - Supabase PostgreSQL with Row Level Security, migrations, and typed client utilities
@@ -80,6 +82,7 @@ Foundational user-facing documentation you can customize for your app:
 | Auth | [SIWE](https://login.xyz) + [iron-session](https://github.com/vvo/iron-session) |
 | Wallet | [OnchainKit](https://onchainkit.xyz) + [wagmi](https://wagmi.sh) + [viem](https://viem.sh) |
 | NFT | [Zora Protocol SDK](https://docs.zora.co/protocol-sdk) + [Zora Coins SDK](https://docs.zora.co/coins) |
+| Mini-App | [OnchainKit MiniKit](https://onchainkit.xyz) + [@farcaster/miniapp-sdk](https://miniapps.farcaster.xyz) |
 
 ## Using as a Template
 
@@ -97,6 +100,52 @@ git merge upstream/main
 ```
 
 See [TEMPLATE.md](TEMPLATE.md) for the full guide on customizing, pulling updates, and contributing back.
+
+## Farcaster Mini App
+
+This template includes built-in support for running as a Farcaster Mini App via OnchainKit MiniKit. When running inside a Farcaster client (Warpcast) or Coinbase Wallet, it automatically:
+
+- Hides the app chrome (header, footer, navigation) since the host provides its own
+- Auto-authenticates using the Farcaster user context (no wallet signature needed)
+- Applies safe area insets from the host client
+- Signals readiness to dismiss the splash screen
+
+### Setup
+
+1. Set `NEXT_PUBLIC_FARCASTER_ENABLED=true` in `.env.local`
+2. Generate an account association signature using [Farcaster tools](https://miniapps.farcaster.xyz)
+3. Set the `FARCASTER_ACCOUNT_HEADER`, `FARCASTER_ACCOUNT_PAYLOAD`, and `FARCASTER_ACCOUNT_SIGNATURE` env vars
+4. Set image URLs for `NEXT_PUBLIC_FARCASTER_ICON_URL`, `NEXT_PUBLIC_FARCASTER_IMAGE_URL`, and `NEXT_PUBLIC_FARCASTER_SPLASH_IMAGE_URL`
+5. Deploy to production — the manifest is served dynamically at `/.well-known/farcaster.json`
+6. Submit your app URL to Farcaster
+
+### Webhook
+
+Set `NEXT_PUBLIC_FARCASTER_WEBHOOK_URL` to your production webhook URL. The `/api/farcaster/webhook` endpoint handles lifecycle events (`miniapp_added`, `miniapp_removed`, `notifications_enabled`, `notifications_disabled`).
+
+### Notifications
+
+Use the utilities in `lib/farcaster-notifications.ts` to send push notifications:
+
+```typescript
+import { sendNotification, broadcastNotification } from '@/lib/farcaster-notifications';
+
+// Send to a single user by FID
+await sendNotification(12345, {
+  notificationId: 'unique-id',
+  title: 'Hello!',
+  body: 'You have a new message',
+  targetUrl: 'https://yourapp.com/messages',
+});
+
+// Broadcast to all opted-in users
+await broadcastNotification({
+  notificationId: 'broadcast-id',
+  title: 'New feature!',
+  body: 'Check out our latest update',
+  targetUrl: 'https://yourapp.com/new',
+});
+```
 
 ## Development
 
