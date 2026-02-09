@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { getUserRole } from '@/lib/admin';
 import { apiMiddleware } from '@/lib/middleware';
+import { getAdminPermissions } from '@/lib/admin-permissions';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const middlewareResult = await apiMiddleware(request, { requireAuth: true });
@@ -13,12 +13,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const role = await getUserRole(session.address);
+    const { role, permissions } = await getAdminPermissions(session.address);
 
     return NextResponse.json({
       role,
       isAdmin: role === 'admin' || role === 'superadmin',
       isSuperAdmin: role === 'superadmin',
+      permissions,
     });
   } catch (error) {
     console.error('Get role error:', error);

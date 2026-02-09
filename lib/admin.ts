@@ -1,11 +1,17 @@
 import { createUntypedServerClient } from './db';
 import { admin as adminConfig } from './config';
+import { adminRoleCache } from './admin-cache';
 import type { UserRole } from '@/types/admin';
 
 /**
  * Get a user's role from the accounts table.
+ * Uses LRU cache (60s TTL) to reduce DB queries.
  */
 export async function getUserRole(address: string): Promise<UserRole> {
+  const cacheKey = `role:${address.toLowerCase()}`;
+  const cached = adminRoleCache.get(cacheKey);
+  if (cached) return cached as UserRole;
+
   const supabase = createUntypedServerClient();
 
   const { data, error } = await supabase
@@ -18,7 +24,9 @@ export async function getUserRole(address: string): Promise<UserRole> {
     return 'user';
   }
 
-  return data.role as UserRole;
+  const role = data.role as UserRole;
+  adminRoleCache.set(cacheKey, role);
+  return role;
 }
 
 /**
@@ -77,11 +85,9 @@ export async function initializeSuperAdmin(address: string): Promise<void> {
 
 /**
  * Update a user's role. Only superadmins should call this.
+ * Invalidates the role cache for the target address.
  */
-export async function updateUserRole(
-  targetAddress: string,
-  newRole: UserRole
-): Promise<void> {
+export async function updateUserRole(targetAddress: string, newRole: UserRole): Promise<void> {
   const supabase = createUntypedServerClient();
 
   const { error } = await supabase
@@ -92,4 +98,7 @@ export async function updateUserRole(
   if (error) {
     throw new Error(`Failed to update user role: ${error.message}`);
   }
+
+  // Invalidate cached role
+  adminRoleCache.delete(`role:${targetAddress.toLowerCase()}`);
 }

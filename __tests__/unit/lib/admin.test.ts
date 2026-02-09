@@ -39,6 +39,7 @@ vi.mock('@/lib/config', async () => {
 });
 
 import { createUntypedServerClient } from '@/lib/db';
+import { adminRoleCache } from '@/lib/admin-cache';
 
 // Import the functions under test AFTER the mock is set up
 import {
@@ -75,9 +76,7 @@ describe('admin', () => {
     ];
 
     for (const account of accounts) {
-      const { error } = await supabase
-        .from('accounts')
-        .upsert(account, { onConflict: 'address' });
+      const { error } = await supabase.from('accounts').upsert(account, { onConflict: 'address' });
 
       if (error) {
         throw new Error(`Failed to set up test account ${account.address}: ${error.message}`);
@@ -148,6 +147,9 @@ describe('admin', () => {
         .update({ role: 'superadmin' })
         .eq('address', SUPERADMIN_ADDRESS.toLowerCase());
 
+      // Clear cache since we bypassed updateUserRole()
+      adminRoleCache.clear();
+
       const result = await isAdmin(SUPERADMIN_ADDRESS);
       expect(result).toBe(true);
 
@@ -156,6 +158,7 @@ describe('admin', () => {
         .from('accounts')
         .update({ role: 'user' })
         .eq('address', SUPERADMIN_ADDRESS.toLowerCase());
+      adminRoleCache.clear();
     });
   });
 
@@ -181,6 +184,9 @@ describe('admin', () => {
         .update({ role: 'superadmin' })
         .eq('address', SUPERADMIN_ADDRESS.toLowerCase());
 
+      // Clear cache since we bypassed updateUserRole()
+      adminRoleCache.clear();
+
       const result = await isSuperAdmin(SUPERADMIN_ADDRESS);
       expect(result).toBe(true);
 
@@ -189,6 +195,7 @@ describe('admin', () => {
         .from('accounts')
         .update({ role: 'user' })
         .eq('address', SUPERADMIN_ADDRESS.toLowerCase());
+      adminRoleCache.clear();
     });
   });
 
@@ -216,8 +223,14 @@ describe('admin', () => {
   // ---------------------------------------------------------------------------
   describe('initializeSuperAdmin', () => {
     it('promotes the configured address to superadmin', async () => {
+      // Clear cache so initializeSuperAdmin reads fresh DB state
+      adminRoleCache.clear();
+
       // SUPERADMIN_ADDRESS is currently 'user' and matches the mocked config
       await initializeSuperAdmin(SUPERADMIN_ADDRESS);
+
+      // Clear cache to read fresh role after promotion
+      adminRoleCache.clear();
 
       const role = await getUserRole(SUPERADMIN_ADDRESS);
       expect(role).toBe('superadmin');
@@ -232,9 +245,15 @@ describe('admin', () => {
     });
 
     it('does nothing when account is already superadmin', async () => {
+      // Clear cache so we read fresh state
+      adminRoleCache.clear();
+
       // SUPERADMIN_ADDRESS is already superadmin from the previous test
       // This should be a no-op (no error thrown)
       await initializeSuperAdmin(SUPERADMIN_ADDRESS);
+
+      // Clear cache to confirm role is still superadmin
+      adminRoleCache.clear();
 
       const role = await getUserRole(SUPERADMIN_ADDRESS);
       expect(role).toBe('superadmin');

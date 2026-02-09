@@ -26,6 +26,7 @@ interface MockAdminState {
   role?: string | null;
   isAdmin?: boolean;
   isSuperAdmin?: boolean;
+  permissions?: string[];
   isLoading?: boolean;
   error?: string | null;
 }
@@ -35,6 +36,7 @@ function mockAdminHook(overrides?: MockAdminState) {
     role: null,
     isAdmin: false,
     isSuperAdmin: false,
+    permissions: [] as string[],
     isLoading: false,
     error: null,
     refetch: vi.fn(),
@@ -60,6 +62,7 @@ describe('useAdmin mock contract validation', () => {
       role: 'admin',
       isAdmin: true,
       isSuperAdmin: false,
+      permissions: ['manage_users'],
       isLoading: false,
       error: null,
       refetch: vi.fn(),
@@ -68,6 +71,7 @@ describe('useAdmin mock contract validation', () => {
     expect(result).toHaveProperty('role');
     expect(result).toHaveProperty('isAdmin');
     expect(result).toHaveProperty('isSuperAdmin');
+    expect(result).toHaveProperty('permissions');
     expect(result).toHaveProperty('isLoading');
     expect(result).toHaveProperty('error');
     expect(result).toHaveProperty('refetch');
@@ -132,9 +136,7 @@ describe('AdminGuard', () => {
     );
 
     expect(screen.getByText('Access Denied')).toBeInTheDocument();
-    expect(
-      screen.getByText('Super admin access is required for this page.')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Super admin access is required for this page.')).toBeInTheDocument();
     expect(screen.queryByText('Super Admin Content')).not.toBeInTheDocument();
   });
 
@@ -148,6 +150,66 @@ describe('AdminGuard', () => {
     );
 
     expect(screen.getByText('Super Admin Content')).toBeInTheDocument();
+    expect(screen.queryByText('Access Denied')).not.toBeInTheDocument();
+  });
+
+  // -------------------------------------------------------------------------
+  // requiredPermission tests
+  // -------------------------------------------------------------------------
+  it('shows "Access Denied" when requiredPermission is set and admin lacks it', () => {
+    mockAdminHook({
+      isAdmin: true,
+      isSuperAdmin: false,
+      role: 'admin',
+      permissions: ['view_users'],
+    });
+
+    render(
+      <AdminGuard requiredPermission={'manage_users' as never}>
+        <p>Permission Content</p>
+      </AdminGuard>
+    );
+
+    expect(screen.getByText('Access Denied')).toBeInTheDocument();
+    expect(
+      screen.getByText('You do not have the required permission: manage_users')
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Permission Content')).not.toBeInTheDocument();
+  });
+
+  it('shows children when admin has the required permission', () => {
+    mockAdminHook({
+      isAdmin: true,
+      isSuperAdmin: false,
+      role: 'admin',
+      permissions: ['manage_users', 'view_users'],
+    });
+
+    render(
+      <AdminGuard requiredPermission={'manage_users' as never}>
+        <p>Permission Content</p>
+      </AdminGuard>
+    );
+
+    expect(screen.getByText('Permission Content')).toBeInTheDocument();
+    expect(screen.queryByText('Access Denied')).not.toBeInTheDocument();
+  });
+
+  it('superadmin bypasses requiredPermission check', () => {
+    mockAdminHook({
+      isAdmin: true,
+      isSuperAdmin: true,
+      role: 'superadmin',
+      permissions: [],
+    });
+
+    render(
+      <AdminGuard requiredPermission={'manage_users' as never}>
+        <p>Permission Content</p>
+      </AdminGuard>
+    );
+
+    expect(screen.getByText('Permission Content')).toBeInTheDocument();
     expect(screen.queryByText('Access Denied')).not.toBeInTheDocument();
   });
 });

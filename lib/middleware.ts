@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from './auth';
 import { rateLimit as rateLimitConfig } from './config';
 import { isAdmin as checkIsAdmin } from './admin';
+import { hasPermission } from './admin-permissions';
+import type { AdminPermission } from '@/types/admin';
 
 // Rate limiting (in-memory - for production with multiple instances, use Redis or similar)
 // NOTE: This map is per-process. In a multi-server deployment, requests can
@@ -69,24 +71,53 @@ export async function requireAdmin(_request: NextRequest): Promise<NextResponse 
   return null; // Continue
 }
 
+// Permission middleware
+export async function requirePermissionMiddleware(
+  _request: NextRequest,
+  permission: AdminPermission
+): Promise<NextResponse | null> {
+  const session = await getSession();
+
+  if (!session.isLoggedIn || !session.address) {
+    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+  }
+
+  const allowed = await hasPermission(session.address, permission);
+  if (!allowed) {
+    return NextResponse.json({ error: `Permission required: ${permission}` }, { status: 403 });
+  }
+
+  return null; // Continue
+}
+
 // Combine middleware
 export async function apiMiddleware(
   request: NextRequest,
-  options: { requireAuth?: boolean; requireAdmin?: boolean; rateLimit?: boolean } = {}
+  options: {
+    requireAuth?: boolean;
+    requireAdmin?: boolean;
+    requirePermission?: AdminPermission;
+    rateLimit?: boolean;
+  } = {}
 ): Promise<NextResponse | null> {
   if (options.rateLimit !== false) {
     const rateLimitResult = requireRateLimit(request);
     if (rateLimitResult) return rateLimitResult;
   }
 
-  if (options.requireAuth || options.requireAdmin) {
+  if (options.requireAuth || options.requireAdmin || options.requirePermission) {
     const authResult = await requireAuth(request);
     if (authResult) return authResult;
   }
 
-  if (options.requireAdmin) {
+  if (options.requireAdmin || options.requirePermission) {
     const adminResult = await requireAdmin(request);
     if (adminResult) return adminResult;
+  }
+
+  if (options.requirePermission) {
+    const permResult = await requirePermissionMiddleware(request, options.requirePermission);
+    if (permResult) return permResult;
   }
 
   return null; // Continue
