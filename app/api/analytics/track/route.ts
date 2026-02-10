@@ -28,14 +28,11 @@ const analyticsEventSchema = z.object({
   }),
 });
 
-const trackRequestSchema = z.discriminatedUnion('type', [
-  pageVisitSchema,
-  analyticsEventSchema,
-]);
+const trackRequestSchema = z.discriminatedUnion('type', [pageVisitSchema, analyticsEventSchema]);
 
 export async function POST(request: NextRequest) {
   // Rate limiting
-  const rateLimitResult = requireRateLimit(request);
+  const rateLimitResult = await requireRateLimit(request);
   if (rateLimitResult) return rateLimitResult;
 
   try {
