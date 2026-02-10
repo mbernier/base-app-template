@@ -18,6 +18,7 @@ describe('wagmi mock contract validation', () => {
       'useWaitForTransactionReceipt',
       'useAccount',
       'useConnect',
+      'useSignMessage',
       'useDisconnect',
       'useReadContract',
     ];
@@ -79,10 +80,27 @@ describe('wagmi mock contract validation', () => {
     expect(result).toHaveProperty('isConnecting');
     expect(result).toHaveProperty('isReconnecting');
     expect(result).toHaveProperty('status');
+    expect(result).toHaveProperty('chainId');
     expect(result).toHaveProperty('chain');
     expect(typeof result.address).toBe('string');
     expect(typeof result.isConnected).toBe('boolean');
     expect(typeof result.status).toBe('string');
+    expect(typeof result.chainId).toBe('number');
+  });
+
+  it('useSignMessage() mock returns well-shaped data', () => {
+    const result = mockModule.useSignMessage();
+
+    expect(result).toHaveProperty('signMessageAsync');
+    expect(result).toHaveProperty('data');
+    expect(result).toHaveProperty('error');
+    expect(result).toHaveProperty('isPending');
+    expect(result).toHaveProperty('isError');
+    expect(result).toHaveProperty('isSuccess');
+    expect(result).toHaveProperty('reset');
+    expect(typeof result.signMessageAsync).toBe('function');
+    expect(typeof result.reset).toBe('function');
+    expect(typeof result.isPending).toBe('boolean');
   });
 
   it('useConnect() mock returns well-shaped data', () => {

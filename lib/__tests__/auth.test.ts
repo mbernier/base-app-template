@@ -153,6 +153,14 @@ describe('verifySiweSignature', () => {
     expect(result.success).toBe(false);
     expect(result.error).toBe('URI mismatch');
   });
+
+  it('should return error when SiweMessage constructor throws', async () => {
+    const { verifySiweSignature } = await import('../auth');
+    // Pass completely invalid message that will cause SiweMessage constructor to throw
+    const result = await verifySiweSignature('not a valid siwe message at all', '0xfake', 'nonce');
+    expect(result.success).toBe(false);
+    expect(result.error).toBeDefined();
+  });
 });
 
 describe('getSession', () => {

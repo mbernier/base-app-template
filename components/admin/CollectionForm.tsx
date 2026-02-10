@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import type { NFTProvider, TokenStandard } from '@/types/nft';
 
-interface CollectionFormData {
+export interface CollectionFormData {
   name: string;
   description: string;
   provider: NFTProvider;
@@ -104,7 +104,9 @@ export function CollectionForm({
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]"
         >
           {PROVIDERS.map((p) => (
-            <option key={p.value} value={p.value}>{p.label}</option>
+            <option key={p.value} value={p.value}>
+              {p.label}
+            </option>
           ))}
         </select>
       </div>
@@ -149,7 +151,9 @@ export function CollectionForm({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]"
           >
             {STANDARDS.map((s) => (
-              <option key={s.value} value={s.value}>{s.label}</option>
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
             ))}
           </select>
         </div>
@@ -207,7 +211,10 @@ export function CollectionForm({
         <div className="border-t border-gray-200 pt-4">
           <h4 className="text-sm font-semibold text-gray-700 mb-3">Zora Coins Config</h4>
           <div>
-            <label htmlFor="startingMarketCap" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="startingMarketCap"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Starting Market Cap
             </label>
             <select

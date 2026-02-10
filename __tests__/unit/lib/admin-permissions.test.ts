@@ -47,29 +47,26 @@ const USER_ADDRESS = `0x${TEST_PREFIX}user000000000000000000000000`.slice(0, 42)
 let superadminAccountId: string;
 let adminAccountId: string;
 
-// Check DB availability
+// Check DB availability synchronously at module level via top-level await
 let dbAvailable = false;
+try {
+  const supabase = createUntypedServerClient();
+  const { error } = await supabase.from('admin_permissions').select('id').limit(0);
+  dbAvailable = !error;
+} catch {
+  dbAvailable = false;
+}
 
 describe('admin-permissions', () => {
   beforeAll(async () => {
+    if (!dbAvailable) return;
+
     // Clear caches
     adminRoleCache.clear();
     adminPermissionsCache.clear();
 
     try {
       const supabase = createUntypedServerClient();
-
-      // Check if we can connect and if admin_permissions table exists
-      const { error: tableCheck } = await supabase.from('admin_permissions').select('id').limit(0);
-
-      if (tableCheck) {
-        console.warn(
-          '[admin-permissions tests] Database or admin_permissions table not available, skipping.'
-        );
-        return;
-      }
-
-      dbAvailable = true;
 
       // Create test accounts
       const accounts = [

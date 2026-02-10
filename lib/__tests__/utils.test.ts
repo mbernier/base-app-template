@@ -7,6 +7,8 @@ import {
   isBrowser,
   isValidAddress,
   debounce,
+  sleep,
+  randomColor,
 } from '../utils';
 
 describe('cn', () => {
@@ -105,5 +107,31 @@ describe('debounce', () => {
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(callCount).toBe(1);
+  });
+});
+
+describe('sleep', () => {
+  it('resolves after specified time', async () => {
+    const start = Date.now();
+    await sleep(50);
+    const elapsed = Date.now() - start;
+    expect(elapsed).toBeGreaterThanOrEqual(40); // Allow some tolerance
+  });
+
+  it('resolves with undefined', async () => {
+    const result = await sleep(10);
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('randomColor', () => {
+  it('returns a hex color string starting with #', () => {
+    const color = randomColor();
+    expect(color).toMatch(/^#[0-9a-f]+$/i);
+  });
+
+  it('generates different colors on multiple calls', () => {
+    const colors = new Set(Array.from({ length: 20 }, () => randomColor()));
+    expect(colors.size).toBeGreaterThan(1);
   });
 });

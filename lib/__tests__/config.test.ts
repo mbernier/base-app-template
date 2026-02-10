@@ -126,3 +126,61 @@ describe('farcaster config', () => {
     warnSpy.mockRestore();
   });
 });
+
+describe('validateServerConfig edge cases', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    vi.resetModules();
+    process.env = { ...originalEnv };
+    // Prevent validateServerConfig from running at module load time
+    process.env.NEXT_PHASE = 'phase-production-build';
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  it('returns early on client side (window defined)', () => {
+    // jsdom has window defined, so validateServerConfig should return without throwing
+    expect(() => validateServerConfig()).not.toThrow();
+  });
+
+  it('throws when SESSION_SECRET is empty on server side', async () => {
+    process.env.SESSION_SECRET = '';
+
+    const originalWindow = globalThis.window;
+    // @ts-expect-error -- deliberately removing window for server-side test
+    delete globalThis.window;
+
+    try {
+      const { validateServerConfig: freshValidate } = await import('../config');
+      expect(() => freshValidate()).toThrow('SESSION_SECRET');
+    } finally {
+      globalThis.window = originalWindow;
+    }
+  });
+
+  it('warns about incomplete Supabase config on server side', async () => {
+    process.env.SESSION_SECRET = 'test-secret-long-enough-value-here';
+    process.env.NEXT_PUBLIC_SUPABASE_URL = '';
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = '';
+    delete process.env.NEXT_PUBLIC_FARCASTER_ENABLED;
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const originalWindow = globalThis.window;
+    // @ts-expect-error -- deliberately removing window for server-side test
+    delete globalThis.window;
+
+    try {
+      const { validateServerConfig: freshValidate } = await import('../config');
+      freshValidate();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Supabase'));
+    } finally {
+      globalThis.window = originalWindow;
+      warnSpy.mockRestore();
+    }
+  });
+});

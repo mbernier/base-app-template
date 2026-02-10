@@ -11,26 +11,27 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createUntypedServerClient } from '@/lib/db';
 import { logAdminAudit, withAuditLog, getAuditLog, getAuditEntry } from '@/lib/admin-audit';
 
+// Check DB availability synchronously at module level via top-level await
+let dbAvailable = false;
+try {
+  const supabase = createUntypedServerClient();
+  const { error } = await supabase.from('admin_audit_log').select('id').limit(0);
+  dbAvailable = !error;
+} catch {
+  dbAvailable = false;
+}
+
 const TEST_PREFIX = `test${Date.now()}`;
 const TEST_ADDRESS = `0x${TEST_PREFIX}audit0000000000000000000000`.slice(0, 42);
 
 let testAccountId: string;
-let dbAvailable = false;
 
 describe('admin-audit', () => {
   beforeAll(async () => {
+    if (!dbAvailable) return;
+
     try {
       const supabase = createUntypedServerClient();
-
-      // Check if admin_audit_log table exists
-      const { error: tableCheck } = await supabase.from('admin_audit_log').select('id').limit(0);
-
-      if (tableCheck) {
-        console.warn('[admin-audit tests] Database or admin_audit_log table not available.');
-        return;
-      }
-
-      dbAvailable = true;
 
       // Create test account
       const { data, error } = await supabase

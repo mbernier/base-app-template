@@ -1,9 +1,13 @@
 /**
- * Mock for wagmi hooks used by our NFT mint hook.
+ * Mock for wagmi hooks used across the app.
  *
  * - useWriteContract: Execute a contract write
  * - useWaitForTransactionReceipt: Wait for tx confirmation
  * - useAccount: Get connected wallet info
+ * - useSignMessage: Sign arbitrary messages (used by SIWE auth)
+ * - useConnect: Connect wallet
+ * - useDisconnect: Disconnect wallet
+ * - useReadContract: Read contract data
  */
 import { vi } from 'vitest';
 
@@ -33,6 +37,7 @@ export const useAccount = vi.fn().mockReturnValue({
   isReconnecting: false,
   status: 'connected',
   connector: undefined,
+  chainId: 8453,
   chain: { id: 8453, name: 'Base' },
 });
 
@@ -42,6 +47,16 @@ export const useConnect = vi.fn().mockReturnValue({
   isPending: false,
   isError: false,
   error: null,
+});
+
+export const useSignMessage = vi.fn().mockReturnValue({
+  signMessageAsync: vi.fn().mockResolvedValue('0xmocksignature'),
+  data: undefined,
+  error: null,
+  isPending: false,
+  isError: false,
+  isSuccess: false,
+  reset: vi.fn(),
 });
 
 export const useDisconnect = vi.fn().mockReturnValue({
