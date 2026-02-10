@@ -8,45 +8,59 @@ This document covers every API route in the application, organized by domain. Al
 
 ### Auth Endpoints
 
-| Method | Path | Auth | Admin | Description |
-|---|---|---|---|---|
-| `GET` | `/api/auth/siwe` | No | No | Generate a SIWE message for signing |
-| `POST` | `/api/auth/siwe` | No | No | Verify signature and create session |
-| `GET` | `/api/auth/session` | No | No | Check current session status |
+| Method | Path                  | Auth | Admin | Description                                      |
+| ------ | --------------------- | ---- | ----- | ------------------------------------------------ |
+| `GET`  | `/api/auth/siwe`      | No   | No    | Generate a SIWE message for signing              |
+| `POST` | `/api/auth/siwe`      | No   | No    | Verify signature and create session              |
+| `GET`  | `/api/auth/session`   | No   | No    | Check current session status                     |
+| `POST` | `/api/auth/farcaster` | No   | No    | Verify SIWF message and create Farcaster session |
+| `POST` | `/api/auth/logout`    | No   | No    | Destroy session cookie                           |
 
 ### User Endpoints
 
-| Method | Path | Auth | Admin | Description |
-|---|---|---|---|---|
-| `GET` | `/api/user` | Yes | No | Get current user profile |
-| `PATCH` | `/api/user` | Yes | No | Update current user profile |
+| Method  | Path        | Auth | Admin | Description                 |
+| ------- | ----------- | ---- | ----- | --------------------------- |
+| `GET`   | `/api/user` | Yes  | No    | Get current user profile    |
+| `PATCH` | `/api/user` | Yes  | No    | Update current user profile |
 
 ### Admin Endpoints
 
-| Method | Path | Auth | Admin | Description |
-|---|---|---|---|---|
-| `GET` | `/api/admin/role` | Yes | No | Get current user's role |
-| `GET` | `/api/admin/users` | Yes | Yes | List all users |
-| `PATCH` | `/api/admin/users` | Yes | Yes (superadmin) | Update a user's role |
-| `GET` | `/api/admin/collections` | Yes | Yes | List all collections (including inactive) |
-| `POST` | `/api/admin/collections` | Yes | Yes | Create a new collection |
-| `GET` | `/api/admin/collections/{id}` | Yes | Yes | Get collection details with tokens |
-| `PATCH` | `/api/admin/collections/{id}` | Yes | Yes | Update a collection |
-| `DELETE` | `/api/admin/collections/{id}` | Yes | Yes | Delete a collection |
-| `GET` | `/api/admin/settings` | Yes | Yes | List all app settings |
-| `PATCH` | `/api/admin/settings` | Yes | Yes | Update a setting |
-| `GET` | `/api/admin/mints` | Yes | Yes | Get mint stats and recent activity |
+| Method   | Path                          | Auth | Admin            | Description                               |
+| -------- | ----------------------------- | ---- | ---------------- | ----------------------------------------- |
+| `GET`    | `/api/admin/role`             | Yes  | No               | Get current user's role                   |
+| `GET`    | `/api/admin/users`            | Yes  | Yes              | List all users                            |
+| `PATCH`  | `/api/admin/users`            | Yes  | Yes (superadmin) | Update a user's role                      |
+| `GET`    | `/api/admin/collections`      | Yes  | Yes              | List all collections (including inactive) |
+| `POST`   | `/api/admin/collections`      | Yes  | Yes              | Create a new collection                   |
+| `GET`    | `/api/admin/collections/{id}` | Yes  | Yes              | Get collection details with tokens        |
+| `PATCH`  | `/api/admin/collections/{id}` | Yes  | Yes              | Update a collection                       |
+| `DELETE` | `/api/admin/collections/{id}` | Yes  | Yes              | Delete a collection                       |
+| `GET`    | `/api/admin/settings`         | Yes  | Yes              | List all app settings                     |
+| `PATCH`  | `/api/admin/settings`         | Yes  | Yes              | Update a setting                          |
+| `GET`    | `/api/admin/mints`            | Yes  | Yes              | Get mint stats and recent activity        |
 
 ### NFT Endpoints
 
-| Method | Path | Auth | Admin | Description |
-|---|---|---|---|---|
-| `GET` | `/api/nft/collections` | No | No | List active collections (public) |
-| `GET` | `/api/nft/collections/{id}` | No | No | Get active collection with tokens (public) |
-| `GET` | `/api/nft/metadata` | No | No | Get token metadata |
-| `POST` | `/api/nft/mint/prepare` | Yes | No | Build mint transaction data |
-| `POST` | `/api/nft/mint/record` | Yes | No | Create or update a mint record |
-| `GET` | `/api/nft/owned` | Yes | No | Get current user's mint history |
+| Method | Path                        | Auth | Admin | Description                                |
+| ------ | --------------------------- | ---- | ----- | ------------------------------------------ |
+| `GET`  | `/api/nft/collections`      | No   | No    | List active collections (public)           |
+| `GET`  | `/api/nft/collections/{id}` | No   | No    | Get active collection with tokens (public) |
+| `GET`  | `/api/nft/metadata`         | No   | No    | Get token metadata                         |
+| `POST` | `/api/nft/mint/prepare`     | Yes  | No    | Build mint transaction data                |
+| `POST` | `/api/nft/mint/record`      | Yes  | No    | Create or update a mint record             |
+| `GET`  | `/api/nft/owned`            | Yes  | No    | Get current user's mint history            |
+
+### Utility Endpoints
+
+| Method  | Path                          | Auth | Admin            | Description                         |
+| ------- | ----------------------------- | ---- | ---------------- | ----------------------------------- |
+| `GET`   | `/api/health`                 | No   | No               | Health check with database status   |
+| `POST`  | `/api/analytics/track`        | No   | No               | Track page visits and custom events |
+| `POST`  | `/api/user/accept-tos`        | Yes  | No               | Record ToS acceptance               |
+| `GET`   | `/api/user/audit-log`         | Yes  | No               | Get user's own API audit trail      |
+| `GET`   | `/api/admin/audit`            | Yes  | Yes              | Query admin audit log               |
+| `GET`   | `/api/admin/permissions`      | Yes  | Yes              | Get permissions for an account      |
+| `PATCH` | `/api/admin/permissions/{id}` | Yes  | Yes (superadmin) | Grant or revoke a permission        |
 
 ---
 
@@ -78,14 +92,14 @@ All errors follow a consistent shape:
 
 Common HTTP status codes:
 
-| Status | Meaning |
-|---|---|
-| `400` | Bad request -- missing or invalid parameters |
-| `401` | Authentication required -- no valid session |
-| `403` | Forbidden -- insufficient role (e.g., not admin, not superadmin) |
-| `404` | Resource not found |
-| `429` | Too many requests -- rate limit exceeded |
-| `500` | Internal server error |
+| Status | Meaning                                                          |
+| ------ | ---------------------------------------------------------------- |
+| `400`  | Bad request -- missing or invalid parameters                     |
+| `401`  | Authentication required -- no valid session                      |
+| `403`  | Forbidden -- insufficient role (e.g., not admin, not superadmin) |
+| `404`  | Resource not found                                               |
+| `429`  | Too many requests -- rate limit exceeded                         |
+| `500`  | Internal server error                                            |
 
 ---
 
@@ -99,10 +113,10 @@ Generate a Sign-In With Ethereum (SIWE) message for the user to sign.
 
 **Query parameters:**
 
-| Param | Type | Required | Description |
-|---|---|---|---|
-| `address` | `string` | Yes | Ethereum address (checksummed or lowercase) |
-| `chainId` | `number` | No | Chain ID (defaults to `84532`) |
+| Param     | Type     | Required | Description                                 |
+| --------- | -------- | -------- | ------------------------------------------- |
+| `address` | `string` | Yes      | Ethereum address (checksummed or lowercase) |
+| `chainId` | `number` | No       | Chain ID (defaults to `84532`)              |
 
 **Response (200):**
 
@@ -154,6 +168,7 @@ Verify a signed SIWE message and create an authenticated session.
 ```
 
 **Side effects:**
+
 - Creates or updates the user in the `accounts` table via `upsertUser`
 - Calls `initializeSuperAdmin` to promote the configured address if it matches
 - Sets session cookies (`address`, `chainId`, `isLoggedIn`)
@@ -192,6 +207,64 @@ Check whether the current user has an active session.
 ```
 
 This endpoint always returns `200`. It never returns an error status for unauthenticated users.
+
+---
+
+### POST /api/auth/farcaster
+
+Verify a Sign-In With Farcaster (SIWF) message and create a session. Used for Farcaster mini-app authentication.
+
+**Auth required:** No
+
+**Request body:**
+
+```json
+{
+  "message": "The SIWF message string",
+  "signature": "0x...",
+  "fid": 12345,
+  "username": "alice",
+  "displayName": "Alice",
+  "pfpUrl": "https://..."
+}
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "user": {
+    "address": "0x...",
+    "username": "alice",
+    "createdAt": "2025-01-15T00:00:00.000Z"
+  }
+}
+```
+
+**Side effects:**
+
+- Verifies the SIWF message cryptographically (nonce, domain, expiration)
+- Creates or updates the user in the `accounts` table
+- Links the Farcaster FID in the `farcaster_users` table
+- Sets session cookies with `fid` and `authMethod: 'farcaster'`
+- Clears the nonce after use (prevents replay attacks)
+
+---
+
+### POST /api/auth/logout
+
+Destroy the current session cookie.
+
+**Auth required:** No (works whether logged in or not)
+
+**Response (200):**
+
+```json
+{
+  "success": true
+}
+```
 
 ---
 
@@ -248,6 +321,58 @@ All fields are optional. `username` must be a string of 50 characters or fewer, 
     "username": "new_username",
     "avatarUrl": "https://new-avatar.png"
   }
+}
+```
+
+---
+
+### POST /api/user/accept-tos
+
+Record that the authenticated user has accepted a specific version of the Terms of Service.
+
+**Auth required:** Yes
+
+**Request body:**
+
+```json
+{
+  "version": "1.0"
+}
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "version": "1.0"
+}
+```
+
+**Side effects:** Updates `tos_accepted_version` and `tos_accepted_at` in the `accounts` table. Also updates the session cookie with the accepted version.
+
+---
+
+### GET /api/user/audit-log
+
+Get the authenticated user's own API request audit trail.
+
+**Auth required:** Yes
+
+**Response (200):**
+
+```json
+{
+  "entries": [
+    {
+      "id": "uuid",
+      "endpoint": "/api/user",
+      "method": "PATCH",
+      "responseStatus": 200,
+      "responseTimeMs": 45,
+      "createdAt": "2025-06-01T12:00:00.000Z"
+    }
+  ]
 }
 ```
 
@@ -390,17 +515,17 @@ Create a new collection.
 }
 ```
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `name` | `string` | Yes | |
-| `provider` | `string` | Yes | `onchainkit`, `zora_protocol`, or `zora_coins` |
-| `description` | `string` | No | |
-| `contractAddress` | `string` | No | |
-| `chainId` | `number` | No | Defaults to `8453` |
-| `tokenStandard` | `string` | No | `erc721`, `erc1155`, or `erc20` |
-| `providerConfig` | `object` | No | Defaults to `{}` |
-| `imageUrl` | `string` | No | |
-| `externalUrl` | `string` | No | |
+| Field             | Type     | Required | Notes                                          |
+| ----------------- | -------- | -------- | ---------------------------------------------- |
+| `name`            | `string` | Yes      |                                                |
+| `provider`        | `string` | Yes      | `onchainkit`, `zora_protocol`, or `zora_coins` |
+| `description`     | `string` | No       |                                                |
+| `contractAddress` | `string` | No       |                                                |
+| `chainId`         | `number` | No       | Defaults to `8453`                             |
+| `tokenStandard`   | `string` | No       | `erc721`, `erc1155`, or `erc20`                |
+| `providerConfig`  | `object` | No       | Defaults to `{}`                               |
+| `imageUrl`        | `string` | No       |                                                |
+| `externalUrl`     | `string` | No       |                                                |
 
 **Response (201):**
 
@@ -474,8 +599,8 @@ Update a collection. All fields are optional -- only provided fields are updated
 
 Any field from the create body can be included. Additionally:
 
-| Field | Type | Description |
-|---|---|---|
+| Field      | Type      | Description                      |
+| ---------- | --------- | -------------------------------- |
 | `isActive` | `boolean` | Enable or disable the collection |
 
 **Response (200):**
@@ -606,6 +731,75 @@ Get aggregated mint statistics and recent mint activity.
 
 ---
 
+### GET /api/admin/audit
+
+Query the admin audit log. Returns entries sorted by most recent first.
+
+**Auth required:** Yes
+**Admin required:** Yes
+
+**Query parameters:**
+
+| Param          | Type     | Required | Description                                                             |
+| -------------- | -------- | -------- | ----------------------------------------------------------------------- |
+| `accountId`    | `string` | No       | Filter by the admin who performed the action                            |
+| `action`       | `string` | No       | Filter by action type (e.g., `role.update`)                             |
+| `resourceType` | `string` | No       | Filter by resource type (`user`, `permission`, `setting`, `collection`) |
+| `limit`        | `number` | No       | Max entries to return (default: 50)                                     |
+
+**Response (200):**
+
+```json
+{
+  "entries": [
+    {
+      "id": "uuid",
+      "accountId": "uuid",
+      "action": "role.update",
+      "resourceType": "user",
+      "resourceId": "uuid",
+      "previousValue": { "role": "user" },
+      "newValue": { "role": "admin" },
+      "success": true,
+      "createdAt": "2025-06-01T12:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### GET /api/admin/permissions
+
+Get the permission grants for a specific admin account.
+
+**Auth required:** Yes
+**Admin required:** Yes (superadmin for viewing other accounts)
+
+**Query parameters:**
+
+| Param       | Type     | Required | Description                           |
+| ----------- | -------- | -------- | ------------------------------------- |
+| `accountId` | `string` | Yes      | Account ID to look up permissions for |
+
+**Response (200):**
+
+```json
+{
+  "permissions": [
+    {
+      "id": "uuid",
+      "accountId": "uuid",
+      "permission": "manage_collections",
+      "grantedBy": "uuid",
+      "grantedAt": "2025-06-01T12:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
 ## NFT Endpoints
 
 ### GET /api/nft/collections
@@ -692,11 +886,11 @@ Fetch normalized token metadata from a provider.
 
 **Query parameters:**
 
-| Param | Type | Required | Description |
-|---|---|---|---|
-| `contractAddress` | `string` | Yes | Contract address |
-| `tokenId` | `string` | No | Token ID within the contract |
-| `provider` | `string` | No | Provider to use. Defaults to `onchainkit` |
+| Param             | Type     | Required | Description                               |
+| ----------------- | -------- | -------- | ----------------------------------------- |
+| `contractAddress` | `string` | Yes      | Contract address                          |
+| `tokenId`         | `string` | No       | Token ID within the contract              |
+| `provider`        | `string` | No       | Provider to use. Defaults to `onchainkit` |
 
 **Response (200):**
 
@@ -708,9 +902,7 @@ Fetch normalized token metadata from a provider.
     "imageUrl": "https://...",
     "animationUrl": "https://...",
     "externalUrl": "https://...",
-    "attributes": [
-      { "traitType": "Color", "value": "Blue" }
-    ]
+    "attributes": [{ "traitType": "Color", "value": "Blue" }]
   }
 }
 ```
@@ -734,11 +926,11 @@ Build transaction data for minting. The server resolves the collection's provide
 }
 ```
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `collectionId` | `string` | Yes | Collection to mint from |
-| `tokenId` | `string` | No | Specific token ID (for ERC-1155) |
-| `quantity` | `number` | No | Number to mint (defaults to `1`) |
+| Field          | Type     | Required | Description                      |
+| -------------- | -------- | -------- | -------------------------------- |
+| `collectionId` | `string` | Yes      | Collection to mint from          |
+| `tokenId`      | `string` | No       | Specific token ID (for ERC-1155) |
+| `quantity`     | `number` | No       | Number to mint (defaults to `1`) |
 
 The minter address is read from the authenticated session, not the request body.
 
@@ -858,16 +1050,101 @@ Returns an empty array if the user has no mint records or if the user account is
 
 ---
 
+## Utility Endpoints
+
+### GET /api/health
+
+Health check endpoint for monitoring and liveness probes.
+
+**Auth required:** No
+**Rate limited:** Yes
+
+**Response (200):**
+
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-06-01T12:00:00.000Z",
+  "services": {
+    "database": "connected"
+  }
+}
+```
+
+---
+
+### POST /api/analytics/track
+
+Track page visits and custom analytics events.
+
+**Auth required:** No
+**Rate limited:** Yes
+
+**Request body (page visit):**
+
+```json
+{
+  "type": "page_visit",
+  "anonymousId": "uuid",
+  "path": "/home",
+  "referrer": "https://google.com",
+  "screenWidth": 1920,
+  "screenHeight": 1080
+}
+```
+
+**Request body (custom event):**
+
+```json
+{
+  "type": "event",
+  "anonymousId": "uuid",
+  "eventType": "button_click",
+  "properties": { "button": "mint" }
+}
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true
+}
+```
+
+---
+
 ## Rate Limiting Behavior
 
 Rate limiting is applied per IP address per route path. The default configuration is:
 
-| Setting | Default | Env Variable |
-|---|---|---|
-| Window | 60 seconds | `RATE_LIMIT_WINDOW_MS` |
+| Setting      | Default        | Env Variable              |
+| ------------ | -------------- | ------------------------- |
+| Window       | 60 seconds     | `RATE_LIMIT_WINDOW_MS`    |
 | Max requests | 100 per window | `RATE_LIMIT_MAX_REQUESTS` |
 
-When the limit is exceeded, the API returns:
+### Providers
+
+The rate limiter auto-detects the best available provider based on environment variables:
+
+| Priority | Provider             | Env Variable                                          | Best For                          |
+| -------- | -------------------- | ----------------------------------------------------- | --------------------------------- |
+| 1        | Standard Redis (TCP) | `REDIS_URL`                                           | Railway, Redis Cloud, self-hosted |
+| 2        | Upstash Redis (HTTP) | `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | Vercel, serverless                |
+| 3        | In-memory (default)  | --                                                    | Development, single-instance      |
+
+Standard Redis uses an atomic Lua script (INCR + PEXPIRE) for race-free fixed-window counting. Upstash uses the `@upstash/ratelimit` SDK with a sliding window. The in-memory provider uses a `Map` (resets on server restart, not shared across instances).
+
+### Response Headers
+
+When the rate limit is exceeded, the API returns status `429` with these headers:
+
+| Header                  | Description                                     |
+| ----------------------- | ----------------------------------------------- |
+| `X-RateLimit-Limit`     | Maximum requests allowed in the window          |
+| `X-RateLimit-Remaining` | Requests remaining (always `0` on 429)          |
+| `X-RateLimit-Reset`     | Unix timestamp (seconds) when the window resets |
+| `Retry-After`           | Seconds until the client should retry           |
 
 ```json
 {
@@ -875,20 +1152,12 @@ When the limit is exceeded, the API returns:
 }
 ```
 
-With HTTP status `429`.
-
-The current implementation uses an in-memory `Map`. This means rate limits reset on server restart and are not shared across multiple server instances. For production deployments with multiple instances, replace the in-memory store with Redis or a similar distributed cache.
-
 ---
 
 ## Audit Logging
 
-The auth endpoints (`/api/auth/siwe` and `/api/auth/session`) include audit logging via `logApiRequest` from `lib/audit.ts`. Each request is logged with:
+The application has two levels of audit logging:
 
-- Endpoint path
-- HTTP method
-- Account ID (if known)
-- Response status code
-- Response time in milliseconds
+**API audit logging** (`lib/audit.ts`): Records every API request with endpoint, method, account ID, response status, and response time. Entries are stored in the `api_audit_log` table.
 
-Other endpoints do not currently include audit logging but follow the same error handling patterns.
+**Admin audit logging** (`lib/admin-audit.ts`): Records admin actions with before/after value snapshots. Entries are stored in the `admin_audit_log` table. See the [Admin System](./admin-system.md) documentation for details on actions tracked and how to query the log.

@@ -8,11 +8,11 @@ The admin system provides role-based access control, a management dashboard, and
 
 Roles are stored in the `role` column of the `accounts` table. Every account defaults to `user` on creation.
 
-| Role | Can access admin dashboard | Manage collections | View analytics | Manage settings | Manage user roles |
-|---|---|---|---|---|---|
-| `user` | No | No | No | No | No |
-| `admin` | Yes | Yes | Yes | Yes | No |
-| `superadmin` | Yes | Yes | Yes | Yes | Yes |
+| Role         | Can access admin dashboard | Manage collections | View analytics | Manage settings | Manage user roles |
+| ------------ | -------------------------- | ------------------ | -------------- | --------------- | ----------------- |
+| `user`       | No                         | No                 | No             | No              | No                |
+| `admin`      | Yes                        | Yes                | Yes            | Yes             | No                |
+| `superadmin` | Yes                        | Yes                | Yes            | Yes             | Yes               |
 
 The role hierarchy is checked with two helper functions in `lib/admin.ts`:
 
@@ -128,7 +128,7 @@ The admin section lives under `app/admin/` and uses a shared layout (`app/admin/
 // app/admin/layout.tsx
 <AdminGuard>
   <div className="flex">
-    <AdminNav />        {/* Sidebar navigation */}
+    <AdminNav /> {/* Sidebar navigation */}
     <div>{children}</div> {/* Page content */}
   </div>
 </AdminGuard>
@@ -138,16 +138,16 @@ The admin section lives under `app/admin/` and uses a shared layout (`app/admin/
 
 `AdminNav` (`components/admin/AdminNav.tsx`) renders these links for all admins:
 
-| Path | Label | Description |
-|---|---|---|
-| `/admin` | Dashboard | Mint analytics and recent activity |
-| `/admin/collections` | Collections | CRUD for NFT collections |
-| `/admin/settings` | Settings | App settings management |
+| Path                 | Label       | Description                        |
+| -------------------- | ----------- | ---------------------------------- |
+| `/admin`             | Dashboard   | Mint analytics and recent activity |
+| `/admin/collections` | Collections | CRUD for NFT collections           |
+| `/admin/settings`    | Settings    | App settings management            |
 
 Superadmins see an additional link:
 
-| Path | Label | Description |
-|---|---|---|
+| Path           | Label | Description          |
+| -------------- | ----- | -------------------- |
 | `/admin/users` | Users | User role management |
 
 ### Dashboard page
@@ -167,18 +167,18 @@ Admins create and manage NFT collections through the admin UI and `POST /api/adm
 
 ### Collection fields
 
-| Field | Required | Description |
-|---|---|---|
-| `name` | Yes | Display name for the collection |
-| `description` | No | Text description |
-| `provider` | Yes | One of `onchainkit`, `zora_protocol`, `zora_coins` |
-| `contractAddress` | No | On-chain contract address (can be set after deployment) |
-| `chainId` | No | Defaults to `8453` (Base Mainnet). Also supports `84532` (Base Sepolia) |
-| `tokenStandard` | No | `erc721`, `erc1155`, or `erc20` |
-| `imageUrl` | No | Collection image URL |
-| `externalUrl` | No | Link to external collection page |
-| `providerConfig` | No | Provider-specific JSON config (see NFT Abstraction docs) |
-| `isActive` | -- | Defaults to `true` on creation. Toggle in the collection list. |
+| Field             | Required | Description                                                             |
+| ----------------- | -------- | ----------------------------------------------------------------------- |
+| `name`            | Yes      | Display name for the collection                                         |
+| `description`     | No       | Text description                                                        |
+| `provider`        | Yes      | One of `onchainkit`, `zora_protocol`, `zora_coins`                      |
+| `contractAddress` | No       | On-chain contract address (can be set after deployment)                 |
+| `chainId`         | No       | Defaults to `8453` (Base Mainnet). Also supports `84532` (Base Sepolia) |
+| `tokenStandard`   | No       | `erc721`, `erc1155`, or `erc20`                                         |
+| `imageUrl`        | No       | Collection image URL                                                    |
+| `externalUrl`     | No       | Link to external collection page                                        |
+| `providerConfig`  | No       | Provider-specific JSON config (see NFT Abstraction docs)                |
+| `isActive`        | --       | Defaults to `true` on creation. Toggle in the collection list.          |
 
 ### Provider-specific config in the admin form
 
@@ -200,11 +200,11 @@ The `CollectionList` component (`components/admin/CollectionList.tsx`) renders a
 
 The `MintAnalytics` component (`components/admin/MintAnalytics.tsx`) displays three stat cards:
 
-| Metric | Description |
-|---|---|
-| **Total Mints** | Count of all mint event records |
+| Metric             | Description                                |
+| ------------------ | ------------------------------------------ |
+| **Total Mints**    | Count of all mint event records            |
 | **Total Quantity** | Sum of all tokens minted across all events |
-| **Unique Minters** | Count of distinct minter addresses |
+| **Unique Minters** | Count of distinct minter addresses         |
 
 Data comes from `GET /api/admin/mints`, which calls `getMintStats()` from `lib/nft-db.ts`. The same endpoint returns `recentMints` for the activity feed.
 
@@ -218,12 +218,12 @@ Application settings are stored in the `app_settings` database table and managed
 
 Each setting is a key-value pair where the value is stored as JSON. Settings have:
 
-| Field | Description |
-|---|---|
-| `key` | Unique string identifier (e.g., `'maintenance_mode'`, `'mint_enabled'`) |
-| `value` | Any JSON-serializable value |
-| `description` | Human-readable description |
-| `updatedBy` | Account ID of the admin who last updated it |
+| Field         | Description                                                             |
+| ------------- | ----------------------------------------------------------------------- |
+| `key`         | Unique string identifier (e.g., `'maintenance_mode'`, `'mint_enabled'`) |
+| `value`       | Any JSON-serializable value                                             |
+| `description` | Human-readable description                                              |
+| `updatedBy`   | Account ID of the admin who last updated it                             |
 
 ### SettingsPanel component
 
@@ -295,7 +295,7 @@ const navItems = [
   { href: '/admin', label: 'Dashboard' },
   { href: '/admin/collections', label: 'Collections' },
   { href: '/admin/settings', label: 'Settings' },
-  { href: '/admin/your-page', label: 'Your Page' },  // Add this
+  { href: '/admin/your-page', label: 'Your Page' }, // Add this
 ];
 ```
 
@@ -304,7 +304,7 @@ If the page should only be visible to superadmins, add it to `superAdminItems` i
 ```typescript
 const superAdminItems = [
   { href: '/admin/users', label: 'Users' },
-  { href: '/admin/your-page', label: 'Your Page' },  // Superadmin only
+  { href: '/admin/your-page', label: 'Your Page' }, // Superadmin only
 ];
 ```
 
@@ -316,11 +316,7 @@ If the page content should be restricted to superadmins (not just hidden from th
 import { AdminGuard } from '@/components/admin/AdminGuard';
 
 export default function SuperAdminOnlyPage() {
-  return (
-    <AdminGuard requireSuperAdmin>
-      {/* Content */}
-    </AdminGuard>
-  );
+  return <AdminGuard requireSuperAdmin>{/* Content */}</AdminGuard>;
 }
 ```
 
@@ -380,3 +376,137 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 ```
 
 The pattern used throughout the codebase is: `requireAdmin` in middleware for general admin access, then an explicit `isSuperAdmin()` check in the handler for elevated operations.
+
+---
+
+## Granular Permissions
+
+Beyond the three-role system, the template supports granular permission grants for fine-grained access control. Superadmins implicitly have all permissions. Regular admins only have permissions explicitly granted to them.
+
+### Available Permissions
+
+| Permission         | Key                  | Description                          |
+| ------------------ | -------------------- | ------------------------------------ |
+| View Users         | `view_users`         | View the user list                   |
+| Manage Users       | `manage_users`       | Edit user profiles                   |
+| Manage Roles       | `manage_roles`       | Change user roles                    |
+| Manage Collections | `manage_collections` | Create, edit, delete NFT collections |
+| Manage Settings    | `manage_settings`    | Edit application settings            |
+| View Audit Log     | `view_audit_log`     | View the admin audit log             |
+| Manage Permissions | `manage_permissions` | Grant and revoke permissions         |
+| View Analytics     | `view_analytics`     | View mint analytics and dashboards   |
+
+Default permissions for the `admin` role: `view_users`, `manage_collections`, `view_audit_log`, `view_analytics`.
+
+### Checking Permissions in Code
+
+```typescript
+import { hasPermission, hasAnyPermission, requirePermission } from '@/lib/admin-permissions';
+import { AdminPermission } from '@/types/admin';
+
+// Check a single permission
+const canManage = await hasPermission(address, AdminPermission.MANAGE_COLLECTIONS);
+
+// Check if user has any of several permissions
+const canView = await hasAnyPermission(address, [
+  AdminPermission.VIEW_USERS,
+  AdminPermission.VIEW_ANALYTICS,
+]);
+
+// Middleware-style: returns NextResponse error or null
+const denied = await requirePermission(AdminPermission.MANAGE_SETTINGS);
+if (denied) return denied;
+```
+
+### Granting and Revoking Permissions
+
+```typescript
+import { grantPermission, revokePermission } from '@/lib/admin-permissions';
+
+// Grant -- requires the granter's account ID
+await grantPermission(targetAccountId, AdminPermission.MANAGE_COLLECTIONS, granterAccountId);
+
+// Revoke
+await revokePermission(targetAccountId, AdminPermission.MANAGE_COLLECTIONS, revokerAccountId);
+```
+
+Both operations invalidate the permission cache and write an entry to the admin audit log.
+
+### Permission Caching
+
+Permissions are cached in an LRU cache (`lib/admin-cache.ts`) to avoid repeated database lookups. The cache is automatically invalidated when permissions are granted or revoked.
+
+---
+
+## Admin Audit Logging
+
+Every admin action that modifies data is recorded in the `admin_audit_log` table. Each entry captures who performed the action, what changed, and the before/after state.
+
+### What Gets Logged
+
+| Action              | Resource Type | When                                  |
+| ------------------- | ------------- | ------------------------------------- |
+| `permission.grant`  | `permission`  | A permission is granted to an admin   |
+| `permission.revoke` | `permission`  | A permission is revoked from an admin |
+| `role.update`       | `user`        | A user's role is changed              |
+| `setting.update`    | `setting`     | An application setting is modified    |
+| `collection.create` | `collection`  | A new NFT collection is created       |
+| `collection.update` | `collection`  | A collection is modified              |
+| `collection.delete` | `collection`  | A collection is deleted               |
+
+### Logging in Code
+
+```typescript
+import { logAdminAudit, withAuditLog } from '@/lib/admin-audit';
+
+// Direct logging
+await logAdminAudit({
+  accountId: currentAccountId,
+  action: 'setting.update',
+  resourceType: 'setting',
+  resourceId: settingKey,
+  previousValue: { value: oldValue },
+  newValue: { value: newValue },
+});
+
+// Wrapper that captures before/after automatically
+const result = await withAuditLog(
+  { accountId, action: 'collection.update', resourceType: 'collection', resourceId: collectionId },
+  async () => getCollectionById(collectionId), // getPreviousValue
+  async () => updateCollection(collectionId, updates) // operation
+);
+```
+
+### Querying the Audit Log
+
+```typescript
+import { getAuditLog, getAuditEntry } from '@/lib/admin-audit';
+
+// All entries (newest first)
+const entries = await getAuditLog({});
+
+// Filter by resource type
+const permissionChanges = await getAuditLog({ resourceType: 'permission', limit: 50 });
+
+// Filter by account
+const userActions = await getAuditLog({ accountId: someAccountId });
+
+// Single entry by ID
+const entry = await getAuditEntry(entryId);
+```
+
+### Audit Log Entry Shape
+
+Each entry contains:
+
+- `accountId` -- who performed the action
+- `action` -- what action was taken (e.g., `role.update`)
+- `resourceType` -- category of the affected resource
+- `resourceId` -- ID of the specific resource
+- `previousValue` -- JSON snapshot before the change
+- `newValue` -- JSON snapshot after the change
+- `success` -- whether the action completed successfully
+- `errorMessage` -- error details if the action failed
+- `createdAt` -- when the action occurred
+
+Audit log failures are logged to the console but never break the calling operation.

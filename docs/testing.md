@@ -21,20 +21,21 @@ The reasoning: mocking your own code creates a parallel universe where tests pas
 
 Only external services and browser-specific APIs that cannot run in a test environment:
 
-| Mock Target | Why |
-|-------------|-----|
-| `@zoralabs/protocol-sdk` | External service, requires live blockchain |
-| `@zoralabs/coins-sdk` | External service, requires live blockchain |
-| `wagmi` hooks | Browser-only, requires wallet connection |
-| `@coinbase/onchainkit` components | Browser-only, requires CDP API |
-| `window.ethereum` / wallet providers | Not available in Node.js |
-| External HTTP APIs | Unreliable in CI, may cost money |
+| Mock Target                          | Why                                        |
+| ------------------------------------ | ------------------------------------------ |
+| `@zoralabs/protocol-sdk`             | External service, requires live blockchain |
+| `@zoralabs/coins-sdk`                | External service, requires live blockchain |
+| `wagmi` hooks                        | Browser-only, requires wallet connection   |
+| `@coinbase/onchainkit` components    | Browser-only, requires CDP API             |
+| `window.ethereum` / wallet providers | Not available in Node.js                   |
+| External HTTP APIs                   | Unreliable in CI, may cost money           |
 
 ## Mock Validation Requirement
 
 Every mock must have its own validation test. This ensures that when the real system changes, you know the mock is out of date.
 
 A mock validation test verifies that:
+
 1. The mock's interface matches the real module's exports.
 2. The mock's return types match what the real system returns.
 3. Key behaviors are consistent (e.g., if the real function throws on invalid input, the mock should too).
@@ -69,38 +70,46 @@ describe('Zora Protocol SDK mock validation', () => {
 
 These are systems you own and control. Test them directly:
 
-| System | Why Not Mock It |
-|--------|-----------------|
-| Supabase / PostgreSQL | You own the schema and queries. Use the real local database. |
-| Internal API routes (`app/api/`) | You own the route handlers. Make real HTTP requests. |
-| `lib/db.ts` functions | You own the database access layer. Call them for real. |
-| `lib/nft-db.ts` functions | You own the CRUD operations. Run them against the real DB. |
-| `lib/auth.ts` | You own session and SIWE logic. Test with real iron-session. |
-| `lib/middleware.ts` | You own the middleware. Test with real request objects. |
-| `lib/config.ts` | You own the config. Set env vars in tests instead of mocking. |
+| System                           | Why Not Mock It                                               |
+| -------------------------------- | ------------------------------------------------------------- |
+| Supabase / PostgreSQL            | You own the schema and queries. Use the real local database.  |
+| Internal API routes (`app/api/`) | You own the route handlers. Make real HTTP requests.          |
+| `lib/db.ts` functions            | You own the database access layer. Call them for real.        |
+| `lib/nft-db.ts` functions        | You own the CRUD operations. Run them against the real DB.    |
+| `lib/auth.ts`                    | You own session and SIWE logic. Test with real iron-session.  |
+| `lib/middleware.ts`              | You own the middleware. Test with real request objects.       |
+| `lib/config.ts`                  | You own the config. Set env vars in tests instead of mocking. |
 
 ## Test File Organization
 
 ```
 __tests__/
   unit/                        # Pure function and module tests
-    lib/                       # Tests for lib/ modules
-      config.test.ts
-      auth.test.ts
-      db.test.ts
-      nft-db.test.ts
-      middleware.test.ts
     nft/                       # Tests for NFT provider logic
       registry.test.ts
     mocks/                     # Mock validation tests
       zora-protocol-sdk.test.ts
       zora-coins-sdk.test.ts
-  integration/                 # Tests that span multiple modules
-    auth/                      # Full SIWE flow tests
-      siwe-flow.test.ts
+  integration/                 # Tests that hit the database or span modules
+    lib/                       # Database-backed lib module tests
+      admin.test.ts
+      admin-audit.test.ts
+      admin-permissions.test.ts
+      audit.test.ts
+      farcaster.test.ts
+      farcaster-notifications.test.ts
+      nft-db.test.ts
     api/                       # API route integration tests
-      nft-mint.test.ts
-      session.test.ts
+      admin/
+        collections.test.ts
+        settings.test.ts
+        role.test.ts
+      auth/
+        farcaster.test.ts
+        siwe.test.ts
+      nft/
+        collections.test.ts
+        mint-prepare.test.ts
   component/                   # React component tests
     auth/
       AuthGuard.test.tsx
@@ -111,6 +120,10 @@ __tests__/
       protocol-sdk.ts
       coins-sdk.ts
     wagmi.ts
+lib/__tests__/                 # Tests co-located with lib modules (unit-level)
+  config.test.ts
+  middleware.test.ts
+  rate-limit.test.ts
 ```
 
 ## Running Tests
@@ -139,6 +152,26 @@ npm test -- --coverage
 
 All tests run without `--watch` so they complete and exit on their own. This is important for CI pipelines and to avoid leaving hanging processes.
 
+## Vitest Project Configuration
+
+The test suite is split into two vitest projects to balance speed and reliability:
+
+### Unit Project
+
+- Includes: `__tests__/unit/`, `__tests__/component/`, `lib/__tests__/`
+- Parallelism: Full (default vitest behavior)
+- Timeouts: 10s test, 15s hook
+- No database contention concerns
+
+### Integration Project
+
+- Includes: `__tests__/integration/`
+- Parallelism: **Disabled** (`fileParallelism: false`) -- tests run one file at a time
+- Timeouts: 30s test, 30s hook
+- Sequential execution prevents Supabase connection contention
+
+This split ensures unit tests run fast while integration tests run reliably against the shared database.
+
 ## Writing a New Test
 
 ### Unit Test Pattern
@@ -155,7 +188,9 @@ describe('nft-db: collections', () => {
   afterEach(async () => {
     // Clean up test data
     if (testCollectionId) {
-      try { await deleteCollection(testCollectionId); } catch {}
+      try {
+        await deleteCollection(testCollectionId);
+      } catch {}
     }
   });
 

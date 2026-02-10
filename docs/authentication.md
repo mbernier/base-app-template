@@ -47,6 +47,7 @@ SIWE lets you authenticate users by their wallet address. Instead of email and p
 **Steps 1-2: Wallet connection.** The `AppProviders` component wraps the app in `WagmiProvider` and `OnchainKitProvider`. When the user connects a wallet, Wagmi tracks the connected address and chain.
 
 **Steps 3-6: Message generation.** The `GET /api/auth/siwe` route builds a SIWE message containing:
+
 - The domain (`SIWE_DOMAIN` config)
 - The wallet address
 - A human-readable statement (`SIWE_STATEMENT` config)
@@ -57,6 +58,7 @@ SIWE lets you authenticate users by their wallet address. Instead of email and p
 **Steps 7-8: Signing.** The `useAuth` hook calls `signMessageAsync` from Wagmi, which prompts the user's wallet to sign the SIWE message.
 
 **Steps 9-13: Verification.** The `POST /api/auth/siwe` route:
+
 1. Verifies the signature using the `siwe` library.
 2. Calls `upsertUser()` to create or update the account in the `accounts` table (address is lowercased, `last_seen_at` is updated).
 3. Calls `initializeSuperAdmin()` to check if this address matches `INITIAL_SUPER_ADMIN_ADDRESS` and promote it to `superadmin` if so.
@@ -72,10 +74,10 @@ Sessions use [iron-session](https://github.com/vvo/iron-session), which stores e
 
 ```typescript
 interface SessionData {
-  address?: string;          // Wallet address
-  chainId?: number;          // Chain ID
-  isLoggedIn: boolean;       // Auth status
-  nonce?: string;            // SIWE nonce (temporary, used during sign-in)
+  address?: string; // Wallet address
+  chainId?: number; // Chain ID
+  isLoggedIn: boolean; // Auth status
+  nonce?: string; // SIWE nonce (temporary, used during sign-in)
   tosAcceptedVersion?: string;
   tosAcceptedAt?: string;
 }
@@ -83,13 +85,13 @@ interface SessionData {
 
 ### Session Cookie Configuration
 
-| Property | Development | Production |
-|----------|-------------|------------|
-| Cookie name | `base_app_session` | `base_app_session` |
-| `httpOnly` | `true` | `true` |
-| `secure` | `false` | `true` |
-| `sameSite` | `lax` | `lax` |
-| `maxAge` | `SESSION_DURATION` (default 86400s) | `SESSION_DURATION` |
+| Property    | Development                         | Production         |
+| ----------- | ----------------------------------- | ------------------ |
+| Cookie name | `base_app_session`                  | `base_app_session` |
+| `httpOnly`  | `true`                              | `true`             |
+| `secure`    | `false`                             | `true`             |
+| `sameSite`  | `lax`                               | `lax`              |
+| `maxAge`    | `SESSION_DURATION` (default 86400s) | `SESSION_DURATION` |
 
 The session secret is `SESSION_SECRET` from your environment. In development, a fallback secret is used if the variable is not set. **In production, a missing `SESSION_SECRET` causes a hard failure.**
 
@@ -130,18 +132,18 @@ The `useAuth` hook provides authentication state and actions to any client compo
 ```typescript
 interface AuthContextType {
   // State
-  isLoggedIn: boolean;          // Has the user completed SIWE sign-in?
-  isLoading: boolean;           // Is an auth operation in progress?
-  address?: string;             // Authenticated wallet address
-  user?: UserInfo;              // User data from the database
+  isLoggedIn: boolean; // Has the user completed SIWE sign-in?
+  isLoading: boolean; // Is an auth operation in progress?
+  address?: string; // Authenticated wallet address
+  user?: UserInfo; // User data from the database
 
   // Wallet state (from Wagmi)
-  isWalletConnected: boolean;   // Is a wallet connected (but not necessarily signed in)?
+  isWalletConnected: boolean; // Is a wallet connected (but not necessarily signed in)?
   walletAddress?: `0x${string}`;
 
   // Actions
-  signIn(): Promise<void>;     // Start the full SIWE flow
-  signOut(): Promise<void>;    // Destroy session and disconnect wallet
+  signIn(): Promise<void>; // Start the full SIWE flow
+  signOut(): Promise<void>; // Destroy session and disconnect wallet
   refreshSession(): Promise<void>; // Re-fetch session from the server
 }
 ```
@@ -181,11 +183,11 @@ The `AuthGuard` component protects pages that require authentication. Wrap any p
 
 ### Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `children` | `ReactNode` | -- | Content to show when authenticated |
-| `fallback` | `ReactNode` | -- | Custom UI to show when not authenticated |
-| `redirectTo` | `string` | -- | URL to redirect to when not authenticated |
+| Prop         | Type        | Default | Description                               |
+| ------------ | ----------- | ------- | ----------------------------------------- |
+| `children`   | `ReactNode` | --      | Content to show when authenticated        |
+| `fallback`   | `ReactNode` | --      | Custom UI to show when not authenticated  |
+| `redirectTo` | `string`    | --      | URL to redirect to when not authenticated |
 
 ### Behavior
 
@@ -242,8 +244,8 @@ import { apiMiddleware } from '@/lib/middleware';
 export async function POST(request: NextRequest) {
   // Returns a 401/403/429 response if checks fail, or null if all pass
   const middlewareResult = await apiMiddleware(request, {
-    requireAuth: true,   // Require SIWE session
-    rateLimit: true,     // Apply rate limiting (default: true)
+    requireAuth: true, // Require SIWE session
+    rateLimit: true, // Apply rate limiting (default: true)
   });
   if (middlewareResult) return middlewareResult;
 
@@ -255,12 +257,13 @@ export async function POST(request: NextRequest) {
 
 ```typescript
 const middlewareResult = await apiMiddleware(request, {
-  requireAdmin: true,  // Requires auth AND admin/superadmin role
+  requireAdmin: true, // Requires auth AND admin/superadmin role
 });
 if (middlewareResult) return middlewareResult;
 ```
 
 When `requireAdmin` is `true`, the middleware:
+
 1. Checks that the user is logged in (same as `requireAuth`).
 2. Looks up the user's `role` in the `accounts` table.
 3. Returns 403 if the role is not `admin` or `superadmin`.
@@ -328,14 +331,76 @@ export default function MyPage() {
 }
 ```
 
+## Farcaster Authentication (SIWF)
+
+When Farcaster mini-app mode is enabled (`NEXT_PUBLIC_FARCASTER_ENABLED=true`), the template supports a second authentication method: Sign-In With Farcaster (SIWF).
+
+### How It Works
+
+Farcaster authentication uses the same session infrastructure as SIWE but authenticates via the Farcaster SDK context instead of a wallet signature.
+
+```
+  Farcaster Client                    Server
+  ----------------                    ------
+
+  1. Mini-app loads inside
+     Farcaster frame
+
+  2. useFarcasterContext() reads
+     SDK context (FID, address)
+
+  3. Auto-auth triggers
+     |
+     +--> POST /api/auth/farcaster
+          { message, signature, fid, username, ... }
+                                      4. Verify SIWF message
+                                         (nonce, domain, expiry)
+                                      5. Upsert user in accounts table
+                                      6. Link FID in farcaster_users table
+                                      7. Create session cookie
+                                         { address, fid, authMethod: 'farcaster' }
+                                      8. Return { success, user }
+     <--
+  9. Update auth state
+```
+
+### Dual-Mode Authentication
+
+The template automatically detects the context:
+
+- **Standalone browser**: Uses SIWE (wallet signature)
+- **Inside Farcaster client**: Uses SIWF (Farcaster SDK context)
+
+The `useFarcasterContext` hook in `hooks/useFarcaster.tsx` detects the Farcaster environment and triggers auto-authentication via `useAuth`. The session stores `authMethod: 'farcaster'` and the user's `fid` for downstream logic.
+
+### Farcaster Notifications
+
+Users who add the mini-app receive a notification token. The template provides:
+
+- `sendNotification(fid, title, body)` -- Send a push notification to a specific user
+- `broadcastNotification(title, body)` -- Send to all users with notifications enabled
+
+See `lib/farcaster-notifications.ts` for the notification delivery implementation.
+
+### Farcaster Webhook
+
+The `POST /api/farcaster/webhook` endpoint handles lifecycle events from the Farcaster platform:
+
+- **`frame_added`** -- User added the mini-app; stores notification token
+- **`frame_removed`** -- User removed the mini-app; marks user as removed
+- **`notifications_enabled`** -- User enabled notifications
+- **`notifications_disabled`** -- User disabled notifications
+
 ## Auth-Related API Endpoints
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/api/auth/siwe` | `GET` | Generate a SIWE message with a fresh nonce |
-| `/api/auth/siwe` | `POST` | Verify a signed SIWE message and create a session |
-| `/api/auth/session` | `GET` | Check current session status and return user data |
-| `/api/auth/logout` | `POST` | Destroy the session cookie |
+| Endpoint                 | Method | Purpose                                                      |
+| ------------------------ | ------ | ------------------------------------------------------------ |
+| `/api/auth/siwe`         | `GET`  | Generate a SIWE message with a fresh nonce                   |
+| `/api/auth/siwe`         | `POST` | Verify a signed SIWE message and create a session            |
+| `/api/auth/session`      | `GET`  | Check current session status and return user data            |
+| `/api/auth/logout`       | `POST` | Destroy the session cookie                                   |
+| `/api/auth/farcaster`    | `POST` | Verify SIWF message and create a Farcaster session           |
+| `/api/farcaster/webhook` | `POST` | Handle Farcaster lifecycle events (add/remove/notifications) |
 
 ## Next Steps
 

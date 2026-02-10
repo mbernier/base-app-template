@@ -93,10 +93,13 @@ The `app` object also exposes a computed property:
 
 ### Rate Limiting (`rateLimit`)
 
-| Variable                  | Type     | Default | Client | Description                             |
-| ------------------------- | -------- | ------- | ------ | --------------------------------------- |
-| `RATE_LIMIT_WINDOW_MS`    | `number` | `60000` | **No** | Time window in milliseconds             |
-| `RATE_LIMIT_MAX_REQUESTS` | `number` | `100`   | **No** | Maximum requests per IP+path per window |
+| Variable                   | Type     | Default | Client | Description                                                                                                                                         |
+| -------------------------- | -------- | ------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RATE_LIMIT_WINDOW_MS`     | `number` | `60000` | **No** | Time window in milliseconds                                                                                                                         |
+| `RATE_LIMIT_MAX_REQUESTS`  | `number` | `100`   | **No** | Maximum requests per IP+path per window                                                                                                             |
+| `REDIS_URL`                | `string` | `''`    | **No** | Standard Redis connection URL (TCP). When set, enables distributed rate limiting via ioredis. Used with Railway, Redis Cloud, or self-hosted Redis. |
+| `UPSTASH_REDIS_REST_URL`   | `string` | `''`    | **No** | Upstash Redis REST endpoint URL. Used with `UPSTASH_REDIS_REST_TOKEN` for HTTP-based distributed rate limiting (ideal for Vercel/serverless).       |
+| `UPSTASH_REDIS_REST_TOKEN` | `string` | `''`    | **No** | Upstash Redis REST auth token. Required when `UPSTASH_REDIS_REST_URL` is set.                                                                       |
 
 ### Farcaster Mini-App (`farcaster`)
 
@@ -117,13 +120,13 @@ The `app` object also exposes a computed property:
 
 ## Development vs. Production
 
-| Behavior                 | Development                          | Production                                         |
-| ------------------------ | ------------------------------------ | -------------------------------------------------- |
-| `SESSION_SECRET` missing | Warning logged, fallback secret used | **Hard failure** -- app refuses to start           |
-| Supabase config missing  | Warning logged                       | Warning logged (will fail on first DB call)        |
-| Cookie `secure` flag     | `false` (works over HTTP)            | `true` (requires HTTPS)                            |
-| Rate limiting            | In-memory `Map`                      | In-memory `Map` (swap to Redis for multi-instance) |
-| Environment variables    | Loaded from `.env.local` by Next.js  | Must be set at the system/platform level           |
+| Behavior                 | Development                          | Production                                                              |
+| ------------------------ | ------------------------------------ | ----------------------------------------------------------------------- |
+| `SESSION_SECRET` missing | Warning logged, fallback secret used | **Hard failure** -- app refuses to start                                |
+| Supabase config missing  | Warning logged                       | Warning logged (will fail on first DB call)                             |
+| Cookie `secure` flag     | `false` (works over HTTP)            | `true` (requires HTTPS)                                                 |
+| Rate limiting            | In-memory Map (default)              | Redis or Upstash (auto-detected from env vars); falls back to in-memory |
+| Environment variables    | Loaded from `.env.local` by Next.js  | Must be set at the system/platform level                                |
 
 ### Production Checklist
 
@@ -137,6 +140,7 @@ Before deploying to production, verify:
 - [ ] `INITIAL_SUPER_ADMIN_ADDRESS` is set to a wallet you control
 - [ ] If Farcaster is enabled, `NEXT_PUBLIC_CHAIN_ID` is `8453` (Farcaster requires Base mainnet for transactions)
 - [ ] `NEXT_PUBLIC_RPC_URL` is set to a reliable RPC provider (Alchemy, Infura, etc.) for production traffic
+- [ ] For multi-instance deployments, set `REDIS_URL` or `UPSTASH_REDIS_REST_URL`+`UPSTASH_REDIS_REST_TOKEN` for distributed rate limiting
 - [ ] No `.env` files are present on the production server
 
 ## Server-Side Validation
