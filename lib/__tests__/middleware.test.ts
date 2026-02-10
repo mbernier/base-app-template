@@ -70,11 +70,10 @@ describe('rate limit config mock contract validation', () => {
 // Contract validation: iron-session mock
 describe('iron-session mock contract validation', () => {
   it('getIronSession returns an object with session properties', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const session = await vi.mocked(getIronSession).getMockImplementation()!(
-      undefined as any,
-      undefined as any,
-      undefined as any
+      undefined as never,
+      undefined as never,
+      undefined as never
     );
     expect(session).toHaveProperty('isLoggedIn');
     expect(session).toHaveProperty('save');
