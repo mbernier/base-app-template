@@ -17,9 +17,14 @@ import React, { ReactNode } from 'react';
 // External mocks — vi.hoisted ensures variables exist when vi.mock runs
 // ---------------------------------------------------------------------------
 
-const { mockSignMessageAsync, mockDisconnect } = vi.hoisted(() => ({
+const { mockSignMessageAsync, mockDisconnect, mockSdkSignIn } = vi.hoisted(() => ({
   mockSignMessageAsync: vi.fn().mockResolvedValue('0xmocksignature'),
   mockDisconnect: vi.fn(),
+  mockSdkSignIn: vi.fn().mockResolvedValue({
+    message: 'siwf-mock-message',
+    signature: '0xsiwf-mock-signature',
+    authMethod: 'custody',
+  }),
 }));
 
 vi.mock('wagmi', () => ({
@@ -51,16 +56,26 @@ vi.mock('@coinbase/onchainkit/minikit', () => ({
   })),
 }));
 
+vi.mock('@farcaster/miniapp-sdk', () => ({
+  sdk: {
+    actions: {
+      signIn: mockSdkSignIn,
+    },
+  },
+}));
+
 // ---------------------------------------------------------------------------
 // Imports (after mocks are registered)
 // ---------------------------------------------------------------------------
 import { useAccount, useSignMessage, useDisconnect } from 'wagmi';
+import { useMiniKit } from '@coinbase/onchainkit/minikit';
 import { FarcasterProvider } from '@/hooks/useFarcaster';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 
 const mockUseAccount = vi.mocked(useAccount);
 const mockUseSignMessage = vi.mocked(useSignMessage);
 const mockUseDisconnect = vi.mocked(useDisconnect);
+const mockUseMiniKit = vi.mocked(useMiniKit);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -137,6 +152,24 @@ describe('wagmi mock contract validation (useAuth scope)', () => {
       expect(realModule).toHaveProperty(key);
       expect(typeof realModule[key]).toBe('function');
     }
+  });
+});
+
+describe('@farcaster/miniapp-sdk mock contract validation', () => {
+  it('mock sdk.actions.signIn has expected shape', async () => {
+    const { sdk } = await import('@farcaster/miniapp-sdk');
+    expect(sdk).toHaveProperty('actions');
+    expect(sdk.actions).toHaveProperty('signIn');
+    expect(typeof sdk.actions.signIn).toBe('function');
+  });
+
+  it('mock signIn returns expected response shape', async () => {
+    const result = await mockSdkSignIn({ nonce: 'test', acceptAuthAddress: true });
+    expect(result).toHaveProperty('message');
+    expect(result).toHaveProperty('signature');
+    expect(result).toHaveProperty('authMethod');
+    expect(typeof result.message).toBe('string');
+    expect(typeof result.signature).toBe('string');
   });
 });
 
@@ -441,6 +474,175 @@ describe('useAuth', () => {
 
     await waitFor(() => {
       expect(result.current.isLoggedIn).toBe(false);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Farcaster auto-auth (SIWF flow)
+  // -----------------------------------------------------------------------
+  describe('Farcaster auto-auth (SIWF)', () => {
+    const MOCK_FARCASTER_CONTEXT = {
+      user: {
+        fid: 12345,
+        username: 'fcuser',
+        displayName: 'FC User',
+        pfpUrl: 'https://example.com/pfp.png',
+      },
+      client: { clientFid: 1, added: false },
+      location: {},
+    };
+
+    function enableMiniAppContext() {
+      mockUseMiniKit.mockReturnValue({
+        context: MOCK_FARCASTER_CONTEXT,
+        isMiniAppReady: true,
+        setMiniAppReady: vi.fn().mockResolvedValue(undefined),
+      } as unknown as ReturnType<typeof useMiniKit>);
+    }
+
+    it('Farcaster auto-auth: full three-step SIWF flow', async () => {
+      enableMiniAppContext();
+
+      const mockFcUser = {
+        address: '0x1234567890123456789012345678901234567890',
+        username: 'fcuser',
+        createdAt: '2024-01-01T00:00:00Z',
+        fid: 12345,
+        farcasterUsername: 'fcuser',
+      };
+
+      mockFetch = vi.fn(async (url: string, init?: RequestInit) => {
+        if (url.startsWith('/api/auth/session')) {
+          return { ok: true, json: async () => SESSION_NOT_LOGGED_IN } as Response;
+        }
+        // GET /api/auth/farcaster -> nonce
+        if (url.startsWith('/api/auth/farcaster') && (!init || init.method !== 'POST')) {
+          return { ok: true, json: async () => ({ nonce: 'test-nonce-abc' }) } as Response;
+        }
+        // POST /api/auth/farcaster -> verify
+        if (url.startsWith('/api/auth/farcaster') && init?.method === 'POST') {
+          return { ok: true, json: async () => ({ success: true, user: mockFcUser }) } as Response;
+        }
+        return { ok: true, json: async () => ({}) } as Response;
+      });
+      vi.stubGlobal('fetch', mockFetch);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      // Wait for Farcaster auto-auth to complete
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.isLoggedIn).toBe(true);
+      });
+
+      expect(result.current.user?.fid).toBe(12345);
+      expect(result.current.user?.farcasterUsername).toBe('fcuser');
+
+      // Verify three-step flow: GET nonce, sdk.actions.signIn, POST verify
+      const fetchCalls = mockFetch.mock.calls.map((c) => ({
+        url: c[0] as string,
+        method: (c[1] as RequestInit | undefined)?.method,
+      }));
+
+      // Step 1: GET nonce
+      expect(
+        fetchCalls.some((c) => c.url.startsWith('/api/auth/farcaster') && c.method !== 'POST')
+      ).toBe(true);
+
+      // Step 2: sdk.actions.signIn was called with nonce
+      expect(mockSdkSignIn).toHaveBeenCalledWith({
+        nonce: 'test-nonce-abc',
+        acceptAuthAddress: true,
+      });
+
+      // Step 3: POST verify with message+signature from signIn
+      const postCall = fetchCalls.find(
+        (c) => c.url.startsWith('/api/auth/farcaster') && c.method === 'POST'
+      );
+      expect(postCall).toBeDefined();
+
+      // Verify the POST body contains message+signature, not fid/address
+      const postInit = mockFetch.mock.calls.find(
+        (c) =>
+          (c[0] as string).startsWith('/api/auth/farcaster') &&
+          (c[1] as RequestInit)?.method === 'POST'
+      )?.[1] as RequestInit;
+      const postBody = JSON.parse(postInit.body as string);
+      expect(postBody.message).toBe('siwf-mock-message');
+      expect(postBody.signature).toBe('0xsiwf-mock-signature');
+      expect(postBody.username).toBe('fcuser');
+      // Should NOT have fid or address in body
+      expect(postBody.fid).toBeUndefined();
+      expect(postBody.address).toBeUndefined();
+    });
+
+    it('Farcaster auto-auth: handles nonce fetch failure gracefully', async () => {
+      enableMiniAppContext();
+
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      mockFetch = vi.fn(async (url: string) => {
+        if (url.startsWith('/api/auth/session')) {
+          return { ok: true, json: async () => SESSION_NOT_LOGGED_IN } as Response;
+        }
+        // GET /api/auth/farcaster -> fail
+        if (url.startsWith('/api/auth/farcaster')) {
+          return { ok: false, json: async () => ({ error: 'Server error' }) } as Response;
+        }
+        return { ok: true, json: async () => ({}) } as Response;
+      });
+      vi.stubGlobal('fetch', mockFetch);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      // Wait for the farcaster auth attempt to complete (error path)
+      // The auto-auth will: session check -> isLoading=false -> auto-auth fires ->
+      // isLoading=true -> nonce fails -> isLoading=false, isLoggedIn=false
+      await waitFor(
+        () => {
+          expect(result.current.isLoggedIn).toBe(false);
+          expect(result.current.isLoading).toBe(false);
+        },
+        { timeout: 3000 }
+      );
+
+      // Verify console.error was called (the auto-auth logs the error)
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+
+    it('Farcaster auto-auth: handles verification failure gracefully', async () => {
+      enableMiniAppContext();
+
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      mockFetch = vi.fn(async (url: string, init?: RequestInit) => {
+        if (url.startsWith('/api/auth/session')) {
+          return { ok: true, json: async () => SESSION_NOT_LOGGED_IN } as Response;
+        }
+        if (url.startsWith('/api/auth/farcaster') && (!init || init.method !== 'POST')) {
+          return { ok: true, json: async () => ({ nonce: 'test-nonce' }) } as Response;
+        }
+        if (url.startsWith('/api/auth/farcaster') && init?.method === 'POST') {
+          return { ok: false, json: async () => ({ error: 'Auth failed' }) } as Response;
+        }
+        return { ok: true, json: async () => ({}) } as Response;
+      });
+      vi.stubGlobal('fetch', mockFetch);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      // Wait for the farcaster auth attempt to complete (verification error path)
+      await waitFor(
+        () => {
+          expect(result.current.isLoggedIn).toBe(false);
+          expect(result.current.isLoading).toBe(false);
+        },
+        { timeout: 3000 }
+      );
+
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
     });
   });
 });

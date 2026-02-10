@@ -1,19 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { getSession, generateNonce, verifyFarcasterSignIn } from '@/lib/auth';
 import { upsertUser } from '@/lib/db';
 import { upsertFarcasterUser } from '@/lib/farcaster';
 import { initializeSuperAdmin } from '@/lib/admin';
 import { logApiRequest, getAccountIdByAddress } from '@/lib/audit';
 import { blockchain } from '@/lib/config';
 
-// POST - Create session from Farcaster context
+// GET - Generate nonce for SIWF (Sign In With Farcaster)
+export async function GET() {
+  const startTime = Date.now();
+
+  const nonce = generateNonce();
+
+  // Store nonce in session for verification
+  const session = await getSession();
+  session.nonce = nonce;
+  await session.save();
+
+  const status = 200;
+  await logApiRequest({
+    endpoint: '/api/auth/farcaster',
+    method: 'GET',
+    responseStatus: status,
+    responseTimeMs: Date.now() - startTime,
+  });
+
+  return NextResponse.json({ nonce });
+}
+
+// POST - Verify SIWF signature and create session
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    const { fid, address, username, displayName, pfpUrl } = await request.json();
+    const { message, signature, username, displayName, pfpUrl } = await request.json();
 
-    if (!fid || !address) {
+    if (!message || !signature) {
       const status = 400;
       await logApiRequest({
         endpoint: '/api/auth/farcaster',
@@ -21,51 +43,64 @@ export async function POST(request: NextRequest) {
         responseStatus: status,
         responseTimeMs: Date.now() - startTime,
       });
-      return NextResponse.json({ error: 'fid and address are required' }, { status });
+      return NextResponse.json({ error: 'Message and signature are required' }, { status });
     }
 
-    // Validate address format
-    if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
-      const status = 400;
+    // Retrieve session nonce for verification
+    const session = await getSession();
+    if (!session.nonce) {
+      const status = 401;
       await logApiRequest({
         endpoint: '/api/auth/farcaster',
         method: 'POST',
         responseStatus: status,
         responseTimeMs: Date.now() - startTime,
       });
-      return NextResponse.json({ error: 'Invalid address format' }, { status });
+      return NextResponse.json(
+        { error: 'No nonce found in session. Request a nonce first.' },
+        { status }
+      );
     }
 
-    // Validate fid is a positive integer
-    if (typeof fid !== 'number' || fid <= 0 || !Number.isInteger(fid)) {
-      const status = 400;
+    // Verify SIWF message+signature cryptographically
+    const result = await verifyFarcasterSignIn(message, signature, session.nonce);
+
+    // Clear nonce after verification attempt (prevent replay)
+    session.nonce = undefined;
+    await session.save();
+
+    if (!result.success || !result.fid || !result.address) {
+      const status = 401;
       await logApiRequest({
         endpoint: '/api/auth/farcaster',
         method: 'POST',
         responseStatus: status,
         responseTimeMs: Date.now() - startTime,
       });
-      return NextResponse.json({ error: 'Invalid fid' }, { status });
+      return NextResponse.json({ error: 'Authentication failed' }, { status });
     }
+
+    // Use ONLY cryptographically verified fid and address -- never from client body
+    const verifiedFid = result.fid;
+    const verifiedAddress = result.address;
 
     // Upsert user in accounts table (reuses existing SIWE flow)
     const user = await upsertUser({
-      address,
+      address: verifiedAddress,
       chainId: blockchain.chainId,
     });
 
     // Initialize super admin if this is the configured address
-    await initializeSuperAdmin(address);
+    await initializeSuperAdmin(verifiedAddress);
 
-    // Upsert Farcaster-specific data
-    await upsertFarcasterUser(user.id, fid, username, displayName, pfpUrl);
+    // Upsert Farcaster-specific data (profile data from client is cosmetic only)
+    await upsertFarcasterUser(user.id, verifiedFid, username, displayName, pfpUrl);
 
-    // Create session
-    const session = await getSession();
-    session.address = address.toLowerCase();
+    // Create session with verified auth data
+    session.address = verifiedAddress.toLowerCase();
     session.chainId = blockchain.chainId;
     session.isLoggedIn = true;
-    session.fid = fid;
+    session.fid = verifiedFid;
     session.authMethod = 'farcaster';
     await session.save();
 
@@ -85,7 +120,7 @@ export async function POST(request: NextRequest) {
         username: user.username || username,
         avatarUrl: user.avatar_url || pfpUrl,
         createdAt: user.created_at,
-        fid,
+        fid: verifiedFid,
         farcasterUsername: username,
       },
     });

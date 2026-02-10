@@ -60,6 +60,8 @@ export const nft = {
 // Farcaster Mini-App configuration
 export const farcaster = {
   enabled: process.env.NEXT_PUBLIC_FARCASTER_ENABLED === 'true',
+  // SIWF (Sign In With Farcaster) domain for message verification
+  domain: process.env.FARCASTER_SIWF_DOMAIN || process.env.SIWE_DOMAIN || 'localhost',
   // Manifest - account association (generated via Farcaster/Base tools)
   accountHeader: process.env.FARCASTER_ACCOUNT_HEADER || '',
   accountPayload: process.env.FARCASTER_ACCOUNT_PAYLOAD || '',

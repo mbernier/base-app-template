@@ -48,3 +48,21 @@ export interface SessionResponse {
   tosAcceptedVersion?: string;
   user?: UserInfo;
 }
+
+export interface FarcasterNonceResponse {
+  nonce: string;
+}
+
+export interface FarcasterVerifyRequest {
+  message: string;
+  signature: string;
+  username?: string;
+  displayName?: string;
+  pfpUrl?: string;
+}
+
+export interface FarcasterVerifyResponse {
+  success: boolean;
+  user?: UserInfo;
+  error?: string;
+}

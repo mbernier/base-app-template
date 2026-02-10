@@ -1,7 +1,8 @@
 import { SiweMessage } from 'siwe';
 import { getIronSession, IronSession } from 'iron-session';
 import { cookies } from 'next/headers';
-import { auth, app } from './config';
+import { createAppClient, viemConnector } from '@farcaster/auth-client';
+import { auth, app, farcaster } from './config';
 
 // Session data type
 export interface SessionData {
@@ -103,4 +104,50 @@ export async function verifySiweSignature(
 // Generate nonce (alphanumeric, no hyphens - required by SIWE)
 export function generateNonce(): string {
   return crypto.randomUUID().replace(/-/g, '');
+}
+
+// Lazy singleton Farcaster app client for SIWF verification
+let _farcasterAppClient: ReturnType<typeof createAppClient> | null = null;
+
+function getFarcasterAppClient() {
+  if (!_farcasterAppClient) {
+    _farcasterAppClient = createAppClient({
+      ethereum: viemConnector(),
+    });
+  }
+  return _farcasterAppClient;
+}
+
+// Verify Farcaster Sign In (SIWF) message and signature
+export async function verifyFarcasterSignIn(
+  message: string,
+  signature: `0x${string}`,
+  nonce: string
+): Promise<{ success: boolean; fid?: number; address?: string; error?: string }> {
+  try {
+    const appClient = getFarcasterAppClient();
+    const result = await appClient.verifySignInMessage({
+      nonce,
+      domain: farcaster.domain,
+      message,
+      signature,
+      acceptAuthAddress: true,
+    });
+
+    if (result.isError) {
+      return { success: false, error: result.error?.message || 'Verification failed' };
+    }
+
+    if (!result.success) {
+      return { success: false, error: 'Signature verification failed' };
+    }
+
+    return {
+      success: true,
+      fid: result.fid,
+      address: result.data?.address,
+    };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
 }

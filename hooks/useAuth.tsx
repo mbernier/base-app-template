@@ -1,9 +1,18 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useRef, ReactNode, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  ReactNode,
+  useCallback,
+} from 'react';
 import { useAccount, useSignMessage, useDisconnect } from 'wagmi';
+import { sdk } from '@farcaster/miniapp-sdk';
 import { useFarcasterContext } from '@/hooks/useFarcaster';
-import type { AuthState, UserInfo } from '@/types/auth';
+import type { AuthState, UserInfo, FarcasterNonceResponse } from '@/types/auth';
 
 interface AuthContextType extends AuthState {
   isWalletConnected: boolean;
@@ -78,23 +87,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         setAuthState((prev) => ({ ...prev, isLoading: true }));
 
-        const res = await fetch('/api/auth/farcaster', {
+        // Step 1: Get nonce from server
+        const nonceRes = await fetch('/api/auth/farcaster');
+        if (!nonceRes.ok) {
+          throw new Error('Failed to get nonce');
+        }
+        const { nonce } = (await nonceRes.json()) as FarcasterNonceResponse;
+
+        // Step 2: Sign in with Farcaster (produces SIWF message+signature)
+        const signInResult = await sdk.actions.signIn({
+          nonce,
+          acceptAuthAddress: true,
+        });
+
+        // Step 3: Verify signature on server
+        const verifyRes = await fetch('/api/auth/farcaster', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            fid: user.fid,
-            address,
+            message: signInResult.message,
+            signature: signInResult.signature,
             username: user.username,
             displayName: user.displayName,
             pfpUrl: user.pfpUrl,
           }),
         });
 
-        if (!res.ok) {
+        if (!verifyRes.ok) {
           throw new Error('Farcaster auth failed');
         }
 
-        const data = (await res.json()) as { user: UserInfo };
+        const data = (await verifyRes.json()) as { user: UserInfo };
 
         setAuthState({
           isLoggedIn: true,
@@ -104,7 +127,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
       } catch (error) {
         console.error('Farcaster auto-auth failed:', error);
-        farcasterAuthAttempted.current = false;
         setAuthState({ isLoggedIn: false, isLoading: false });
       }
     })();
