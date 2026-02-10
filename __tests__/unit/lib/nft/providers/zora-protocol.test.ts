@@ -58,6 +58,19 @@ vi.mock('@/lib/config', () => ({
   blockchain: { chainId: 84532 },
 }));
 
+vi.mock('@/lib/chain', () => ({
+  CHAIN_META: {
+    chain: { id: 84532, name: 'Base Sepolia' },
+    chainId: 84532,
+    name: 'Base Sepolia',
+    isTestnet: true,
+    isMainnet: false,
+    blockExplorerUrl: 'https://sepolia.basescan.org',
+    faucetUrl: 'https://www.coinbase.com/faucets/base-ethereum-goerli-faucet',
+    rpcUrl: null,
+  },
+}));
+
 // ---------------------------------------------------------------------------
 // Import after mocks are registered
 // ---------------------------------------------------------------------------
@@ -122,7 +135,7 @@ describe('ZoraProtocolProvider', () => {
           tokenContract: TEST_ADDRESS,
           minterAccount: MINTER_ADDRESS,
           quantityToMint: 1,
-        }),
+        })
       );
     });
 
@@ -135,7 +148,7 @@ describe('ZoraProtocolProvider', () => {
       });
 
       expect(mockZoraMint).toHaveBeenCalledWith(
-        expect.objectContaining({ mintType: '721', tokenId: undefined }),
+        expect.objectContaining({ mintType: '721', tokenId: undefined })
       );
     });
 
@@ -149,7 +162,7 @@ describe('ZoraProtocolProvider', () => {
       });
 
       expect(mockZoraMint).toHaveBeenCalledWith(
-        expect.objectContaining({ mintType: '1155', tokenId: BigInt(10) }),
+        expect.objectContaining({ mintType: '1155', tokenId: BigInt(10) })
       );
     });
 
@@ -162,7 +175,7 @@ describe('ZoraProtocolProvider', () => {
       });
 
       expect(mockZoraMint).toHaveBeenCalledWith(
-        expect.objectContaining({ mintReferral: '0xreferral' }),
+        expect.objectContaining({ mintReferral: '0xreferral' })
       );
     });
 

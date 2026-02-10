@@ -10,8 +10,8 @@ The file `lib/config.ts` exports named objects that group related settings. Each
 // Example: reading blockchain config
 import { blockchain } from '@/lib/config';
 
-console.log(blockchain.chainId);      // 84532
-console.log(blockchain.tokenSymbol);   // "TOKEN"
+console.log(blockchain.chainId); // 84532
+console.log(blockchain.tokenSymbol); // "TOKEN"
 ```
 
 Key behaviors:
@@ -25,86 +25,105 @@ Key behaviors:
 
 ### Blockchain (`blockchain`)
 
-| Variable | Type | Default | Client | Description |
-|----------|------|---------|--------|-------------|
-| `NEXT_PUBLIC_TOKEN_ADDRESS` | `0x${string}` | -- | Yes | Primary ERC-20 token contract address |
-| `NEXT_PUBLIC_TOKEN_SYMBOL` | `string` | `TOKEN` | Yes | Display symbol |
-| `NEXT_PUBLIC_TOKEN_DECIMALS` | `number` | `18` | Yes | Token decimal places |
-| `NEXT_PUBLIC_CHAIN_ID` | `number` | `84532` | Yes | Chain ID: `84532` (Base Sepolia) or `8453` (Base Mainnet) |
-| `NEXT_PUBLIC_TREASURY_WALLET` | `0x${string}` | -- | Yes | Treasury or escrow wallet |
+| Variable                      | Type          | Default | Client | Description                                                                 |
+| ----------------------------- | ------------- | ------- | ------ | --------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_TOKEN_ADDRESS`   | `0x${string}` | --      | Yes    | Primary ERC-20 token contract address                                       |
+| `NEXT_PUBLIC_TOKEN_SYMBOL`    | `string`      | `TOKEN` | Yes    | Display symbol                                                              |
+| `NEXT_PUBLIC_TOKEN_DECIMALS`  | `number`      | `18`    | Yes    | Token decimal places                                                        |
+| `NEXT_PUBLIC_CHAIN_ID`        | `number`      | `84532` | Yes    | Chain ID: `84532` (Base Sepolia) or `8453` (Base Mainnet)                   |
+| `NEXT_PUBLIC_RPC_URL`         | `string`      | --      | Yes    | Custom RPC URL (Alchemy, Infura, etc.). Uses default public RPC if not set. |
+| `NEXT_PUBLIC_TREASURY_WALLET` | `0x${string}` | --      | Yes    | Treasury or escrow wallet                                                   |
 
 ### OnchainKit (`onchainKit`)
 
-| Variable | Type | Default | Client | Description |
-|----------|------|---------|--------|-------------|
-| `NEXT_PUBLIC_CDP_API_KEY` | `string` | -- | Yes | Coinbase Developer Platform API key for gasless transactions |
-| `NEXT_PUBLIC_PAYMASTER_URL` | `string` | -- | Yes | Paymaster URL for sponsored transactions |
+| Variable                    | Type     | Default | Client | Description                                                  |
+| --------------------------- | -------- | ------- | ------ | ------------------------------------------------------------ |
+| `NEXT_PUBLIC_CDP_API_KEY`   | `string` | --      | Yes    | Coinbase Developer Platform API key for gasless transactions |
+| `NEXT_PUBLIC_PAYMASTER_URL` | `string` | --      | Yes    | Paymaster URL for sponsored transactions                     |
 
 ### Application (`app`)
 
-| Variable | Type | Default | Client | Description |
-|----------|------|---------|--------|-------------|
-| `NEXT_PUBLIC_APP_URL` | `string` | `http://localhost:3100` | Yes | Public URL of the app |
-| `NEXT_PUBLIC_APP_NAME` | `string` | `Base App` | Yes | App name in titles and wallet prompts |
-| `NODE_ENV` | `string` | `development` | No | Environment: `development` or `production` |
+| Variable               | Type     | Default                 | Client | Description                                |
+| ---------------------- | -------- | ----------------------- | ------ | ------------------------------------------ |
+| `NEXT_PUBLIC_APP_URL`  | `string` | `http://localhost:3100` | Yes    | Public URL of the app                      |
+| `NEXT_PUBLIC_APP_NAME` | `string` | `Base App`              | Yes    | App name in titles and wallet prompts      |
+| `NODE_ENV`             | `string` | `development`           | No     | Environment: `development` or `production` |
 
 The `app` object also exposes a computed property:
+
 - `app.isProduction` -- `true` when `NODE_ENV === 'production'`
 
 ### Features (`features`)
 
-| Variable | Type | Default | Client | Description |
-|----------|------|---------|--------|-------------|
-| `NEXT_PUBLIC_SHOW_USER_AUDIT_LOG` | `boolean` | `false` | Yes | Show audit log on the profile page |
+| Variable                          | Type      | Default | Client | Description                        |
+| --------------------------------- | --------- | ------- | ------ | ---------------------------------- |
+| `NEXT_PUBLIC_SHOW_USER_AUDIT_LOG` | `boolean` | `false` | Yes    | Show audit log on the profile page |
 
 ### Database (`database`)
 
-| Variable | Type | Default | Client | Description |
-|----------|------|---------|--------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | `string` | `''` | Yes | Supabase API URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `string` | `''` | Yes | Supabase anonymous/public key |
-| `SUPABASE_SERVICE_ROLE_KEY` | `string` | `''` | **No** | Supabase service role key (full access, server-side only) |
+| Variable                        | Type     | Default | Client | Description                                               |
+| ------------------------------- | -------- | ------- | ------ | --------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | `string` | `''`    | Yes    | Supabase API URL                                          |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `string` | `''`    | Yes    | Supabase anonymous/public key                             |
+| `SUPABASE_SERVICE_ROLE_KEY`     | `string` | `''`    | **No** | Supabase service role key (full access, server-side only) |
 
 ### Authentication (`auth`)
 
-| Variable | Type | Default | Client | Description |
-|----------|------|---------|--------|-------------|
-| `SESSION_SECRET` | `string` | `''` | **No** | Secret for encrypting iron-session cookies. **Required in production.** |
-| `SESSION_DURATION` | `number` | `86400` | **No** | Session TTL in seconds (default: 24 hours) |
-| `SIWE_DOMAIN` | `string` | `localhost` | **No** | Domain in SIWE messages. Set to your production domain. |
-| `SIWE_STATEMENT` | `string` | `Sign in to this app` | **No** | Human-readable statement shown during signing |
+| Variable           | Type     | Default               | Client | Description                                                             |
+| ------------------ | -------- | --------------------- | ------ | ----------------------------------------------------------------------- |
+| `SESSION_SECRET`   | `string` | `''`                  | **No** | Secret for encrypting iron-session cookies. **Required in production.** |
+| `SESSION_DURATION` | `number` | `86400`               | **No** | Session TTL in seconds (default: 24 hours)                              |
+| `SIWE_DOMAIN`      | `string` | `localhost`           | **No** | Domain in SIWE messages. Set to your production domain.                 |
+| `SIWE_STATEMENT`   | `string` | `Sign in to this app` | **No** | Human-readable statement shown during signing                           |
 
 ### NFT (`nft`)
 
-| Variable | Type | Default | Client | Description |
-|----------|------|---------|--------|-------------|
-| `NEXT_PUBLIC_DEFAULT_NFT_PROVIDER` | `string` | `onchainkit` | Yes | Default provider: `onchainkit`, `zora_protocol`, or `zora_coins` |
-| `ZORA_CREATE_REFERRAL_ADDRESS` | `0x${string}` | -- | **No** | Zora referral address for collection creation rewards |
-| `ZORA_MINT_REFERRAL_ADDRESS` | `0x${string}` | -- | **No** | Zora referral address for mint rewards |
-| `ZORA_PLATFORM_REFERRER_ADDRESS` | `0x${string}` | -- | **No** | Platform referrer for Zora Coins |
+| Variable                           | Type          | Default      | Client | Description                                                      |
+| ---------------------------------- | ------------- | ------------ | ------ | ---------------------------------------------------------------- |
+| `NEXT_PUBLIC_DEFAULT_NFT_PROVIDER` | `string`      | `onchainkit` | Yes    | Default provider: `onchainkit`, `zora_protocol`, or `zora_coins` |
+| `ZORA_CREATE_REFERRAL_ADDRESS`     | `0x${string}` | --           | **No** | Zora referral address for collection creation rewards            |
+| `ZORA_MINT_REFERRAL_ADDRESS`       | `0x${string}` | --           | **No** | Zora referral address for mint rewards                           |
+| `ZORA_PLATFORM_REFERRER_ADDRESS`   | `0x${string}` | --           | **No** | Platform referrer for Zora Coins                                 |
 
 ### Admin (`admin`)
 
-| Variable | Type | Default | Client | Description |
-|----------|------|---------|--------|-------------|
-| `INITIAL_SUPER_ADMIN_ADDRESS` | `string` | -- | **No** | Wallet address auto-promoted to superadmin on first login |
+| Variable                      | Type     | Default | Client | Description                                               |
+| ----------------------------- | -------- | ------- | ------ | --------------------------------------------------------- |
+| `INITIAL_SUPER_ADMIN_ADDRESS` | `string` | --      | **No** | Wallet address auto-promoted to superadmin on first login |
 
 ### Rate Limiting (`rateLimit`)
 
-| Variable | Type | Default | Client | Description |
-|----------|------|---------|--------|-------------|
-| `RATE_LIMIT_WINDOW_MS` | `number` | `60000` | **No** | Time window in milliseconds |
-| `RATE_LIMIT_MAX_REQUESTS` | `number` | `100` | **No** | Maximum requests per IP+path per window |
+| Variable                  | Type     | Default | Client | Description                             |
+| ------------------------- | -------- | ------- | ------ | --------------------------------------- |
+| `RATE_LIMIT_WINDOW_MS`    | `number` | `60000` | **No** | Time window in milliseconds             |
+| `RATE_LIMIT_MAX_REQUESTS` | `number` | `100`   | **No** | Maximum requests per IP+path per window |
+
+### Farcaster Mini-App (`farcaster`)
+
+| Variable                                 | Type      | Default       | Client | Description                                          |
+| ---------------------------------------- | --------- | ------------- | ------ | ---------------------------------------------------- |
+| `NEXT_PUBLIC_FARCASTER_ENABLED`          | `boolean` | `false`       | Yes    | Enable Farcaster mini-app mode                       |
+| `FARCASTER_SIWF_DOMAIN`                  | `string`  | `SIWE_DOMAIN` | **No** | Domain for SIWF message verification                 |
+| `FARCASTER_ACCOUNT_HEADER`               | `string`  | `''`          | **No** | Account association header (proves domain ownership) |
+| `FARCASTER_ACCOUNT_PAYLOAD`              | `string`  | `''`          | **No** | Account association payload                          |
+| `FARCASTER_ACCOUNT_SIGNATURE`            | `string`  | `''`          | **No** | Account association signature                        |
+| `NEXT_PUBLIC_FARCASTER_ICON_URL`         | `string`  | `''`          | Yes    | Mini-app icon URL                                    |
+| `NEXT_PUBLIC_FARCASTER_IMAGE_URL`        | `string`  | `''`          | Yes    | Mini-app image URL                                   |
+| `NEXT_PUBLIC_FARCASTER_SPLASH_IMAGE_URL` | `string`  | `''`          | Yes    | Splash screen image URL                              |
+| `NEXT_PUBLIC_FARCASTER_SPLASH_BG_COLOR`  | `string`  | `#ffffff`     | Yes    | Splash screen background color                       |
+| `NEXT_PUBLIC_FARCASTER_BUTTON_TITLE`     | `string`  | `Launch`      | Yes    | Button title in Farcaster embed                      |
+
+**Testnet note:** Farcaster requires Base mainnet for onchain transactions. When `NEXT_PUBLIC_FARCASTER_ENABLED=true` and `NEXT_PUBLIC_CHAIN_ID=84532`, identity features (FID, SIWF) will work but wallet transactions will fail. See [Testnet Development](./testnet-development.md) for details.
 
 ## Development vs. Production
 
-| Behavior | Development | Production |
-|----------|-------------|------------|
-| `SESSION_SECRET` missing | Warning logged, fallback secret used | **Hard failure** -- app refuses to start |
-| Supabase config missing | Warning logged | Warning logged (will fail on first DB call) |
-| Cookie `secure` flag | `false` (works over HTTP) | `true` (requires HTTPS) |
-| Rate limiting | In-memory `Map` | In-memory `Map` (swap to Redis for multi-instance) |
-| Environment variables | Loaded from `.env.local` by Next.js | Must be set at the system/platform level |
+| Behavior                 | Development                          | Production                                         |
+| ------------------------ | ------------------------------------ | -------------------------------------------------- |
+| `SESSION_SECRET` missing | Warning logged, fallback secret used | **Hard failure** -- app refuses to start           |
+| Supabase config missing  | Warning logged                       | Warning logged (will fail on first DB call)        |
+| Cookie `secure` flag     | `false` (works over HTTP)            | `true` (requires HTTPS)                            |
+| Rate limiting            | In-memory `Map`                      | In-memory `Map` (swap to Redis for multi-instance) |
+| Environment variables    | Loaded from `.env.local` by Next.js  | Must be set at the system/platform level           |
 
 ### Production Checklist
 
@@ -116,6 +135,8 @@ Before deploying to production, verify:
 - [ ] `NEXT_PUBLIC_CHAIN_ID` is `8453` (Base Mainnet) if targeting mainnet
 - [ ] `NEXT_PUBLIC_SUPABASE_URL` and keys point to your hosted Supabase project
 - [ ] `INITIAL_SUPER_ADMIN_ADDRESS` is set to a wallet you control
+- [ ] If Farcaster is enabled, `NEXT_PUBLIC_CHAIN_ID` is `8453` (Farcaster requires Base mainnet for transactions)
+- [ ] `NEXT_PUBLIC_RPC_URL` is set to a reliable RPC provider (Alchemy, Infura, etc.) for production traffic
 - [ ] No `.env` files are present on the production server
 
 ## Server-Side Validation
@@ -139,7 +160,7 @@ Follow this pattern to keep configuration consistent:
 // In the relevant config group:
 export const myGroup = {
   existingValue: process.env.MY_EXISTING_VALUE || 'default',
-  newValue: process.env.MY_NEW_VALUE || 'default',         // Add here
+  newValue: process.env.MY_NEW_VALUE || 'default', // Add here
 };
 ```
 
@@ -160,3 +181,4 @@ myAddress: process.env.MY_ADDRESS as `0x${string}` | undefined,
 - [Architecture](./architecture.md) -- see how config flows into the provider tree and middleware.
 - [Authentication](./authentication.md) -- the auth config values in action.
 - [Database](./database.md) -- how `database` config connects to Supabase.
+- [Testnet Development](./testnet-development.md) -- chain switching, Farcaster limitations, and development workflow.

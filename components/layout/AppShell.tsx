@@ -5,6 +5,7 @@ import { useFarcasterContext } from '@/hooks/useFarcaster';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { MobileNav } from './MobileNav';
+import { ChainBanner } from '@/components/dev/ChainBanner';
 
 interface AppShellProps {
   children: ReactNode;
@@ -36,6 +37,7 @@ export function AppShell({ children }: AppShellProps) {
   // Standalone mode: render everything as before
   return (
     <div className="min-h-screen flex flex-col">
+      <ChainBanner />
       {/* Skip to content link for keyboard navigation (WCAG 2.4.1) */}
       <a
         href="#main-content"

@@ -108,6 +108,17 @@ export function validateServerConfig(): void {
           'The manifest at /.well-known/farcaster.json will be incomplete.'
       );
     }
+
+    if (blockchain.chainId !== 8453) {
+      console.warn(
+        '[Config] Farcaster is enabled on testnet (chain ' +
+          blockchain.chainId +
+          '). ' +
+          'Identity features (FID, SIWF) will work, but onchain transactions will FAIL -- ' +
+          'Farcaster wallets connect to Base mainnet only. ' +
+          'Set NEXT_PUBLIC_CHAIN_ID=8453 for full functionality.'
+      );
+    }
   }
 }
 

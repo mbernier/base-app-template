@@ -1,14 +1,13 @@
 import { parseUnits, formatUnits, type Address } from 'viem';
-import { base, baseSepolia } from 'viem/chains';
 import { blockchain } from './config';
+
+export { CHAIN } from './chain';
 
 export const TOKEN_CONFIG = {
   address: blockchain.tokenAddress,
   symbol: blockchain.tokenSymbol,
   decimals: blockchain.tokenDecimals,
 };
-
-export const CHAIN = blockchain.chainId === 8453 ? base : baseSepolia;
 
 // ERC-20 ABI (minimal)
 export const ERC20_ABI = [

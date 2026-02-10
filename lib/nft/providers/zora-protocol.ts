@@ -1,10 +1,10 @@
 import type { Address } from 'viem';
 import { createPublicClient, http } from 'viem';
-import { base, baseSepolia } from 'viem/chains';
 import { mint as zoraMint, getToken as zoraGetToken } from '@zoralabs/protocol-sdk';
 import type { NFTMetadata, MintTransactionData } from '@/types/nft';
 import type { INFTProvider, ProviderMintParams, ProviderCreateParams } from '../types';
-import { nft as nftConfig, blockchain } from '@/lib/config';
+import { nft as nftConfig } from '@/lib/config';
+import { CHAIN_META } from '@/lib/chain';
 
 /**
  * Zora Protocol SDK provider.
@@ -16,17 +16,13 @@ export class ZoraProtocolProvider implements INFTProvider {
   readonly providerType = 'zora_protocol' as const;
 
   private getPublicClient() {
-    const chain = blockchain.chainId === 8453 ? base : baseSepolia;
     return createPublicClient({
-      chain,
-      transport: http(),
+      chain: CHAIN_META.chain,
+      transport: http(CHAIN_META.rpcUrl ?? undefined),
     });
   }
 
-  async getTokenMetadata(
-    contractAddress: Address,
-    tokenId?: string
-  ): Promise<NFTMetadata> {
+  async getTokenMetadata(contractAddress: Address, tokenId?: string): Promise<NFTMetadata> {
     try {
       const publicClient = this.getPublicClient();
 

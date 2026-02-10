@@ -99,6 +99,13 @@ describe('GET /.well-known/farcaster.json', () => {
     expect(body.miniapp.webhookUrl).toBe('https://test.example.com/api/farcaster/webhook');
   });
 
+  it('miniapp contains requiredChains with Base mainnet', async () => {
+    const response = await GET();
+    const body = await response.json();
+
+    expect(body.miniapp.requiredChains).toEqual(['eip155:8453']);
+  });
+
   it('sets Cache-Control: public, max-age=3600', async () => {
     const response = await GET();
     const cacheControl = response.headers.get('Cache-Control');

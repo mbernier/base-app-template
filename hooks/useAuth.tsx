@@ -12,6 +12,7 @@ import {
 import { useAccount, useSignMessage, useDisconnect } from 'wagmi';
 import { sdk } from '@farcaster/miniapp-sdk';
 import { useFarcasterContext } from '@/hooks/useFarcaster';
+import { blockchain } from '@/lib/config';
 import type { AuthState, UserInfo, FarcasterNonceResponse } from '@/types/auth';
 
 interface AuthContextType extends AuthState {
@@ -85,6 +86,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     (async () => {
       try {
+        if (blockchain.chainId !== 8453) {
+          console.warn(
+            '[Auth] Farcaster auth on testnet (chain ' +
+              blockchain.chainId +
+              '): ' +
+              'Identity will work but wallet transactions will fail (chain mismatch with mainnet).'
+          );
+        }
+
         setAuthState((prev) => ({ ...prev, isLoading: true }));
 
         // Step 1: Get nonce from server

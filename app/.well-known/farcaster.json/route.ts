@@ -16,6 +16,7 @@ export async function GET() {
       splashImageUrl: farcaster.splashImageUrl || `${app.url}/splash.png`,
       splashBackgroundColor: farcaster.splashBgColor,
       webhookUrl: `${app.url}/api/farcaster/webhook`,
+      requiredChains: ['eip155:8453'],
     },
   };
 

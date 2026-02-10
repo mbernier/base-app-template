@@ -1,4 +1,5 @@
 import { getFarcasterUserByFid, getNotificationEnabledUsers } from './farcaster';
+import { blockchain } from './config';
 
 interface NotificationPayload {
   notificationId: string;
@@ -15,6 +16,15 @@ export async function sendNotification(
   fid: number,
   payload: NotificationPayload
 ): Promise<boolean> {
+  if (blockchain.chainId !== 8453) {
+    console.warn(
+      '[Notification] Sending on testnet (chain ' +
+        blockchain.chainId +
+        '). ' +
+        "Recipients' Farcaster wallets connect to mainnet -- onchain actions from notifications will fail."
+    );
+  }
+
   const user = await getFarcasterUserByFid(fid);
 
   if (!user || !user.notifications_enabled || !user.notification_url || !user.notification_token) {
@@ -50,9 +60,16 @@ export async function sendNotification(
  * Broadcast a notification to all opted-in Farcaster users.
  * Returns the count of successfully sent notifications.
  */
-export async function broadcastNotification(
-  payload: NotificationPayload
-): Promise<number> {
+export async function broadcastNotification(payload: NotificationPayload): Promise<number> {
+  if (blockchain.chainId !== 8453) {
+    console.warn(
+      '[Notification] Broadcasting on testnet (chain ' +
+        blockchain.chainId +
+        '). ' +
+        "Recipients' Farcaster wallets connect to mainnet -- onchain actions from notifications will fail."
+    );
+  }
+
   const users = await getNotificationEnabledUsers();
   let sentCount = 0;
 

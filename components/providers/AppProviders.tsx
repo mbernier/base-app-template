@@ -8,17 +8,20 @@ import { OnchainKitProvider } from '@coinbase/onchainkit';
 import { AuthProvider } from '@/hooks/useAuth';
 import { FarcasterProvider } from '@/hooks/useFarcaster';
 import { AnalyticsProvider } from '@/hooks/useAnalytics';
-import { blockchain, onchainKit, app } from '@/lib/config';
+import { onchainKit, app } from '@/lib/config';
+import { CHAIN_META } from '@/lib/chain';
 
-const isMainnet = blockchain.chainId === 8453;
-const chain = isMainnet ? base : baseSepolia;
+const chain = CHAIN_META.chain;
 
-// Create wagmi config with both possible chains to satisfy TypeScript
+// Create wagmi config with both possible chains to satisfy TypeScript.
+// Use custom RPC URL if configured, otherwise fall back to default public RPC.
 const wagmiConfig = createConfig({
   chains: [base, baseSepolia],
   transports: {
-    [base.id]: http(),
-    [baseSepolia.id]: http(),
+    [base.id]: http(CHAIN_META.isMainnet && CHAIN_META.rpcUrl ? CHAIN_META.rpcUrl : undefined),
+    [baseSepolia.id]: http(
+      CHAIN_META.isTestnet && CHAIN_META.rpcUrl ? CHAIN_META.rpcUrl : undefined
+    ),
   },
 });
 
@@ -66,9 +69,7 @@ export function AppProviders({ children }: AppProvidersProps) {
         >
           <FarcasterProvider>
             <AuthProvider>
-              <AnalyticsProvider>
-                {mounted ? children : null}
-              </AnalyticsProvider>
+              <AnalyticsProvider>{mounted ? children : null}</AnalyticsProvider>
             </AuthProvider>
           </FarcasterProvider>
         </OnchainKitProvider>

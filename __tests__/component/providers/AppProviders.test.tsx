@@ -63,6 +63,19 @@ vi.mock('@/lib/config', () => ({
   app: { name: 'Test App' },
 }));
 
+vi.mock('@/lib/chain', () => ({
+  CHAIN_META: {
+    chain: { id: 84532, name: 'Base Sepolia' },
+    chainId: 84532,
+    name: 'Base Sepolia',
+    isTestnet: true,
+    isMainnet: false,
+    blockExplorerUrl: 'https://sepolia.basescan.org',
+    faucetUrl: 'https://www.coinbase.com/faucets/base-ethereum-goerli-faucet',
+    rpcUrl: null,
+  },
+}));
+
 import { AppProviders } from '@/components/providers/AppProviders';
 import { WagmiProvider, createConfig } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

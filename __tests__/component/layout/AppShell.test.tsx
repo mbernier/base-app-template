@@ -33,6 +33,10 @@ vi.mock('@/components/layout/MobileNav', () => ({
   ),
 }));
 
+vi.mock('@/components/dev/ChainBanner', () => ({
+  ChainBanner: () => <div data-testid="chain-banner">ChainBanner</div>,
+}));
+
 import { useFarcasterContext } from '@/hooks/useFarcaster';
 import { AppShell } from '@/components/layout/AppShell';
 
@@ -55,6 +59,16 @@ describe('AppShell', () => {
   // Standalone mode (isMiniApp = false)
   // -------------------------------------------------------------------------
   describe('standalone mode (isMiniApp=false)', () => {
+    it('renders ChainBanner in standalone mode', () => {
+      render(
+        <AppShell>
+          <p>Page content</p>
+        </AppShell>
+      );
+
+      expect(screen.getByTestId('chain-banner')).toBeInTheDocument();
+    });
+
     it('renders Header, Footer, and MobileNav', () => {
       render(
         <AppShell>
@@ -105,6 +119,16 @@ describe('AppShell', () => {
           typeof useFarcasterContext
         >['context'],
       });
+    });
+
+    it('does NOT render ChainBanner in mini-app mode', () => {
+      render(
+        <AppShell>
+          <p>Mini-app content</p>
+        </AppShell>
+      );
+
+      expect(screen.queryByTestId('chain-banner')).not.toBeInTheDocument();
     });
 
     it('does NOT render Header, Footer, or MobileNav', () => {
