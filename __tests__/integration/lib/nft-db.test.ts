@@ -7,7 +7,7 @@
  * Test data is prefixed with a timestamp to avoid collisions with parallel
  * runs and is cleaned up in afterAll (FK order: mints -> tokens -> collections -> settings).
  */
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import {
   getCollections,
   getCollectionById,

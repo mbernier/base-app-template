@@ -1,35 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from './auth';
-import { rateLimit as rateLimitConfig } from './config';
 import { isAdmin as checkIsAdmin } from './admin';
 import { hasPermission } from './admin-permissions';
+import { rateLimit } from './rate-limit';
 import type { AdminPermission } from '@/types/admin';
-
-// Rate limiting (in-memory - for production with multiple instances, use Redis or similar)
-// NOTE: This map is per-process. In a multi-server deployment, requests can
-// exceed limits proportional to the number of instances. See docs for Redis setup.
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-
-export function rateLimit(
-  identifier: string,
-  windowMs: number = rateLimitConfig.windowMs,
-  maxRequests: number = rateLimitConfig.maxRequests
-): boolean {
-  const now = Date.now();
-  const record = rateLimitMap.get(identifier);
-
-  if (!record || now > record.resetTime) {
-    rateLimitMap.set(identifier, { count: 1, resetTime: now + windowMs });
-    return true;
-  }
-
-  if (record.count >= maxRequests) {
-    return false;
-  }
-
-  record.count++;
-  return true;
-}
 
 // Auth middleware
 export async function requireAuth(_request: NextRequest): Promise<NextResponse | null> {
@@ -43,13 +17,27 @@ export async function requireAuth(_request: NextRequest): Promise<NextResponse |
 }
 
 // Rate limit middleware
-export function requireRateLimit(request: NextRequest): NextResponse | null {
+export async function requireRateLimit(request: NextRequest): Promise<NextResponse | null> {
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
   const path = new URL(request.url).pathname;
   const identifier = `${ip}:${path}`;
 
-  if (!rateLimit(identifier)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  const result = await rateLimit(identifier);
+
+  if (!result.allowed) {
+    const retryAfter = Math.ceil((result.resetMs - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': String(result.limit),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': String(Math.ceil(result.resetMs / 1000)),
+          'Retry-After': String(Math.max(1, retryAfter)),
+        },
+      }
+    );
   }
 
   return null; // Continue
@@ -101,7 +89,7 @@ export async function apiMiddleware(
   } = {}
 ): Promise<NextResponse | null> {
   if (options.rateLimit !== false) {
-    const rateLimitResult = requireRateLimit(request);
+    const rateLimitResult = await requireRateLimit(request);
     if (rateLimitResult) return rateLimitResult;
   }
 

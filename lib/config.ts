@@ -83,6 +83,11 @@ export const admin = {
 export const rateLimit = {
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'),
   maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
+  // Standard Redis (Railway, Redis Cloud, self-hosted)
+  redisUrl: process.env.REDIS_URL || '',
+  // Upstash Redis (HTTP-based, for serverless)
+  upstashUrl: process.env.UPSTASH_REDIS_REST_URL || '',
+  upstashToken: process.env.UPSTASH_REDIS_REST_TOKEN || '',
 };
 
 // Validate server-side configuration at boot

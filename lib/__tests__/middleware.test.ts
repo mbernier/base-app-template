@@ -39,7 +39,21 @@ vi.mock('../config', () => ({
   rateLimit: {
     windowMs: 60000,
     maxRequests: 5,
+    redisUrl: '',
+    upstashUrl: '',
+    upstashToken: '',
   },
+}));
+
+// Mock rate-limit module (middleware delegates to this)
+const mockRateLimit = vi.fn().mockResolvedValue({
+  allowed: true,
+  limit: 5,
+  remaining: 4,
+  resetMs: Date.now() + 60000,
+});
+vi.mock('../rate-limit', () => ({
+  rateLimit: (...args: unknown[]) => mockRateLimit(...args),
 }));
 
 // Mock admin-permissions hasPermission (external DB dependency)
@@ -62,8 +76,29 @@ describe('rate limit config mock contract validation', () => {
     const { rateLimit } = await import('../config');
     expect(rateLimit).toHaveProperty('windowMs');
     expect(rateLimit).toHaveProperty('maxRequests');
+    expect(rateLimit).toHaveProperty('redisUrl');
+    expect(rateLimit).toHaveProperty('upstashUrl');
+    expect(rateLimit).toHaveProperty('upstashToken');
     expect(typeof rateLimit.windowMs).toBe('number');
     expect(typeof rateLimit.maxRequests).toBe('number');
+    expect(typeof rateLimit.redisUrl).toBe('string');
+    expect(typeof rateLimit.upstashUrl).toBe('string');
+    expect(typeof rateLimit.upstashToken).toBe('string');
+  });
+});
+
+// Contract validation: rate-limit module mock
+describe('rate-limit module mock contract validation', () => {
+  it('rateLimit returns RateLimitResult shape', async () => {
+    const result = await mockRateLimit('test-id');
+    expect(result).toHaveProperty('allowed');
+    expect(result).toHaveProperty('limit');
+    expect(result).toHaveProperty('remaining');
+    expect(result).toHaveProperty('resetMs');
+    expect(typeof result.allowed).toBe('boolean');
+    expect(typeof result.limit).toBe('number');
+    expect(typeof result.remaining).toBe('number');
+    expect(typeof result.resetMs).toBe('number');
   });
 });
 
@@ -97,57 +132,73 @@ describe('admin mock contract validation', () => {
   });
 });
 
-describe('rateLimit', () => {
-  beforeEach(() => {
-    vi.resetModules();
-  });
-
-  it('should allow requests within limit', async () => {
-    const { rateLimit } = await import('../middleware');
-
-    for (let i = 0; i < 5; i++) {
-      expect(rateLimit(`test-allow-${Date.now()}-unique`, 60000, 5)).toBe(true);
-    }
-  });
-
-  it('should block requests exceeding limit', async () => {
-    const { rateLimit } = await import('../middleware');
-    const id = `test-block-${Date.now()}`;
-
-    // Use up all allowed requests
-    for (let i = 0; i < 5; i++) {
-      rateLimit(id, 60000, 5);
-    }
-
-    // Next request should be blocked
-    expect(rateLimit(id, 60000, 5)).toBe(false);
-  });
-
-  it('should track different identifiers separately', async () => {
-    const { rateLimit } = await import('../middleware');
-    const ts = Date.now();
-
-    // Use up limit for identifier A
-    for (let i = 0; i < 5; i++) {
-      rateLimit(`id-a-${ts}`, 60000, 5);
-    }
-    expect(rateLimit(`id-a-${ts}`, 60000, 5)).toBe(false);
-
-    // Identifier B should still be allowed
-    expect(rateLimit(`id-b-${ts}`, 60000, 5)).toBe(true);
-  });
-});
-
 describe('requireRateLimit', () => {
+  beforeEach(() => {
+    mockRateLimit.mockClear();
+  });
+
   it('should return null when within rate limit', async () => {
+    mockRateLimit.mockResolvedValueOnce({
+      allowed: true,
+      limit: 5,
+      remaining: 4,
+      resetMs: Date.now() + 60000,
+    });
+
     const { requireRateLimit } = await import('../middleware');
     const request = new Request('http://localhost:3100/api/test', {
       headers: { 'x-forwarded-for': `unique-ip-${Date.now()}` },
     });
 
-    // NextRequest requires a NextURL-compatible object
-    const result = requireRateLimit(request as never);
+    const result = await requireRateLimit(request as never);
     expect(result).toBeNull();
+    expect(mockRateLimit).toHaveBeenCalledOnce();
+  });
+
+  it('should return 429 with headers when rate limit exceeded', async () => {
+    const resetMs = Date.now() + 30000;
+    mockRateLimit.mockResolvedValueOnce({
+      allowed: false,
+      limit: 100,
+      remaining: 0,
+      resetMs,
+    });
+
+    const { requireRateLimit } = await import('../middleware');
+    const request = new Request('http://localhost:3100/api/test', {
+      headers: { 'x-forwarded-for': '1.2.3.4' },
+    });
+
+    const result = await requireRateLimit(request as never);
+    expect(result).not.toBeNull();
+    expect(result!.status).toBe(429);
+
+    const body = await result!.json();
+    expect(body.error).toBe('Too many requests');
+
+    // Verify rate limit headers
+    expect(result!.headers.get('X-RateLimit-Limit')).toBe('100');
+    expect(result!.headers.get('X-RateLimit-Remaining')).toBe('0');
+    expect(result!.headers.get('X-RateLimit-Reset')).toBeTruthy();
+    expect(result!.headers.get('Retry-After')).toBeTruthy();
+    expect(Number(result!.headers.get('Retry-After'))).toBeGreaterThan(0);
+  });
+
+  it('should pass identifier as ip:path to rateLimit', async () => {
+    mockRateLimit.mockResolvedValueOnce({
+      allowed: true,
+      limit: 5,
+      remaining: 4,
+      resetMs: Date.now() + 60000,
+    });
+
+    const { requireRateLimit } = await import('../middleware');
+    const request = new Request('http://localhost:3100/api/test', {
+      headers: { 'x-forwarded-for': '10.0.0.1' },
+    });
+
+    await requireRateLimit(request as never);
+    expect(mockRateLimit).toHaveBeenCalledWith('10.0.0.1:/api/test');
   });
 });
 
